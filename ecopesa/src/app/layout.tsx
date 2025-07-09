@@ -4,7 +4,8 @@ import './globals.css'
 import Navbar from '@/components/Navbar'
 import Footer from '@/components/Footer'
 import PWAInstaller from '@/components/PWAInstaller'
-
+import SignupPage from '@/app/signup/page'
+import LoginPage from '@/app/login/page'
 const inter = Inter({ subsets: ['latin'] })
 
 // ✅ Metadata export (no themeColor here)
@@ -37,8 +38,9 @@ export default function RootLayout({
         <div className="min-h-screen flex flex-col">
           <Navbar />
           <main className="flex-grow">{children}</main>
+        
           <Footer />
-        </div>
+          </div>
         <PWAInstaller />
       </body>
     </html>

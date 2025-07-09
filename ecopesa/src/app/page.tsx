@@ -1,6 +1,30 @@
+'use client'
+
 import Head from 'next/head'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
+import { supabase } from '../lib/supabaseClient' // Adjust the path as needed
+
+
+
 
 export default function Home() {
+  const router = useRouter()
+  const [showModal, setShowModal] = useState(false)
+
+const handleStartRecycling = async () => {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (user) {
+    router.push('/profile') // Redirect to profile if user is logged in
+  } else {
+    router.push('/login') // Redirect to login if not
+  }
+}
+
   return (
     <>
       <Head>
@@ -12,18 +36,22 @@ export default function Home() {
         {/* Header */}
         <header className="bg-emerald-600 text-white p-4 shadow-md">
           <div className="container mx-auto flex justify-between items-center">
-            <h1 className="text-2xl font-bold">EcoPesa</h1>
-            <div className="flex space-x-4">
-              <button
-                className="p-2 rounded-full bg-emerald-700"
-                aria-label="User Profile"
-                title="User Profile"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                </svg>
-              </button>
-            </div>
+           <h1 className="text-2xl font-bold">EcoPesa</h1>
+           <div className="flex flex-col items-end space-y-1">
+            <Link
+              href="/signup"
+              className="bg-white text-emerald-600 px-4 py-1 rounded-full font-semibold shadow hover:bg-gray-100 transition"
+            >
+              Sign Up
+            </Link>
+            <p className="text-sm text-white">
+              Already have an account?{' '}
+             <Link href="/login" className="underline hover:text-emerald-200">
+                Log In
+            </Link>
+            </p>
+           </div>
+
           </div>
         </header>
 
@@ -32,11 +60,18 @@ export default function Home() {
           <div className="container mx-auto text-center">
             <h2 className="text-3xl font-bold mb-4">Recycle & Earn Rewards</h2>
             <p className="mb-6">Turn your waste into EcoPesa points and redeem exciting rewards</p>
-            <button className="bg-white text-emerald-600 px-6 py-3 rounded-full font-bold shadow-lg hover:bg-gray-100 transition">
-              Start Recycling
-            </button>
+            <button
+               onClick={handleStartRecycling}
+               className="bg-white text-emerald-600 px-6 py-3 rounded-full font-bold shadow-lg hover:bg-gray-100 transition"
+              >             
+                 Start Recycling
+              </button>
+
           </div>
         </section>
+
+        
+
 
         {/* Features */}
         <section className="py-12 px-4">
@@ -76,9 +111,13 @@ export default function Home() {
           <div className="container mx-auto text-center">
             <h3 className="text-2xl font-bold text-emerald-800 mb-4">Ready to Recycle?</h3>
             <p className="mb-6 text-gray-700 max-w-2xl mx-auto">Join thousands of people already earning from their waste</p>
-            <button className="bg-emerald-600 text-white px-8 py-3 rounded-full font-bold shadow-md hover:bg-emerald-700 transition">
-              Find a Collection Center
-            </button>
+            <Link
+              href="/CollectionCenters"
+              onClick={() => setShowModal(true)}
+              className="bg-emerald-600 text-white px-8 py-3 rounded-full font-bold shadow-md hover:bg-emerald-700 transition inline-block"
+            >
+              find a collection center
+            </Link>
           </div>
         </section>
 
@@ -88,6 +127,35 @@ export default function Home() {
             <p>© {new Date().getFullYear()} EcoPesa. All rights reserved.</p>
           </div>
         </footer>
+        {showModal && (
+  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="bg-white rounded-lg p-6 shadow-xl w-11/12 max-w-sm text-center">
+      <h2 className="text-xl font-bold mb-4 text-emerald-800">You're not logged in</h2>
+      <p className="mb-6 text-gray-600">To start recycling, please log in or create an account.</p>
+      <div className="flex justify-center space-x-4">
+        <Link
+          href="/login"
+          className="bg-emerald-600 text-white px-4 py-2 rounded-full font-semibold hover:bg-emerald-700 transition"
+        >
+          Log In
+        </Link>
+        <Link
+          href="/signup"
+          className="bg-gray-200 text-emerald-800 px-4 py-2 rounded-full font-semibold hover:bg-gray-300 transition"
+        >
+          Sign Up
+        </Link>
+      </div>
+      <button
+        onClick={() => setShowModal(false)}
+        className="mt-4 text-sm text-gray-500 hover:text-gray-700"
+      >
+        Cancel
+      </button>
+    </div>
+  </div>
+)}
+
       </div>
     </>
   )
