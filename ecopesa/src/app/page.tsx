@@ -4,8 +4,8 @@ import Head from 'next/head'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
-import { supabase } from '../lib/supabaseClient' // Adjust the path as needed
-
+import { createBrowserClient } from '@/utils/supabase/client'
+import { SUPABASE_CONFIG } from '@/lib/config';
 
 
 
@@ -13,17 +13,21 @@ export default function Home() {
   const router = useRouter()
   const [showModal, setShowModal] = useState(false)
 
+
+const supabase = createBrowserClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
+
+
 const handleStartRecycling = async () => {
   const {
     data: { user },
-  } = await supabase.auth.getUser()
+  } = await supabase.auth.getUser();
 
   if (user) {
-    router.push('/profile') // Redirect to profile if user is logged in
+    router.push('/profile'); // Redirect to profile if user is logged in
   } else {
-    router.push('/login') // Redirect to login if not
+    router.push('/login'); // Redirect to login if not
   }
-}
+};
 
   return (
     <>
@@ -121,12 +125,7 @@ const handleStartRecycling = async () => {
           </div>
         </section>
 
-        {/* Footer */}
-        <footer className="bg-emerald-800 text-white p-6">
-          <div className="container mx-auto text-center">
-            <p>© {new Date().getFullYear()} EcoPesa. All rights reserved.</p>
-          </div>
-        </footer>
+       
         {showModal && (
   <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
     <div className="bg-white rounded-lg p-6 shadow-xl w-11/12 max-w-sm text-center">

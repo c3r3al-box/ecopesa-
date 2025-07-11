@@ -2,9 +2,8 @@ import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import Navbar from '@/components/Navbar'
-import Footer from '@/components/Footer'
 import PWAInstaller from '@/components/PWAInstaller'
-import SignupPage from '@/app/signup/page'
+import SignupPage from '@/app/Register/[role]/page'
 import LoginPage from '@/app/login/page'
 const inter = Inter({ subsets: ['latin'] })
 
@@ -39,7 +38,7 @@ export default function RootLayout({
           <Navbar />
           <main className="flex-grow">{children}</main>
         
-          <Footer />
+         
           </div>
         <PWAInstaller />
       </body>
