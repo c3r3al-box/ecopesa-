@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { createBrowserClient } from '@/utils/supabase/client'
-import { SUPABASE_CONFIG } from '@/lib/config';
+
 
 
 
@@ -14,7 +14,11 @@ export default function Home() {
   const [showModal, setShowModal] = useState(false)
 
 
-const supabase = createBrowserClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey);
+const supabase = createBrowserClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
+
 
 
 const handleStartRecycling = async () => {
@@ -25,7 +29,7 @@ const handleStartRecycling = async () => {
   if (user) {
     router.push('/profile'); // Redirect to profile if user is logged in
   } else {
-    router.push('/login'); // Redirect to login if not
+    router.push('/auth/login'); // Redirect to login if not
   }
 };
 
