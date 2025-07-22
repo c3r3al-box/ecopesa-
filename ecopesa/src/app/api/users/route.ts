@@ -22,7 +22,7 @@ export async function POST(req: Request) {
 
     // 3. Insert into users table
     const { error } = await supabase
-      .from('users')
+      .from('profile')
       .insert([{
         id: session.user.id,
         full_name: body.full_name,
