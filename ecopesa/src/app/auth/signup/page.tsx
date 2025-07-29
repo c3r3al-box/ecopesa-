@@ -1,7 +1,8 @@
 // app/auth/signup/page.tsx
 'use client';
 import { useRouter } from 'next/navigation';
-import { useFormState, useFormStatus } from 'react-dom';
+import { useActionState } from 'react';
+import { useFormStatus } from 'react-dom';
 import { signup } from '@/app/auth/signup/actions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -10,7 +11,7 @@ import { SignupState } from '@/app/auth/signup/actions';
 
 export default function SignupPage() {
   const router = useRouter();
-  const [state, formAction] = useFormState<SignupState, FormData >(signup, {
+  const [state, formAction] = useActionState<SignupState, FormData >(signup, {
     error: undefined,
     success: false,
     requiresConfirmation: false,
@@ -34,11 +35,7 @@ export default function SignupPage() {
         </div>
       )}
 
-      {state?.requiresConfirmation && (
-        <div className="p-2 bg-green-100 text-green-700 rounded-md">
-          {state.message}
-        </div>
-      )}
+      
 
       <form action={formAction} className="space-y-3">
         <div>
@@ -73,7 +70,12 @@ export default function SignupPage() {
           />
         </div>
 
-        <input type="hidden" name="role" value="USER" />
+        <select name="role" required>
+         <option value="user">Regular User</option>
+          <option value="collector">Waste Collector</option>
+          <option value="recycler">Recycler</option>
+        </select>
+
 
         <Button type="submit" className="w-full" disabled={pending}>
           {pending ? 'Creating account...' : 'Sign Up'}

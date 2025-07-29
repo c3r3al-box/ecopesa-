@@ -1,6 +1,7 @@
 // app/actions/auth/signup.ts
 'use server';
 import { createClient } from '@/utils/supabase/server';
+import { auth } from 'auth';
 
 export interface SignupState {
   error?: string;
@@ -40,7 +41,7 @@ export async function signup(
       email,
       password,
       options: {
-        data: { full_name: name },
+        data: { full_name: name,role },
         emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`
       }
     });
@@ -48,26 +49,30 @@ export async function signup(
     if (authError) throw authError;
 
     // 2. Create profile
-    if (authData.user) {
+    if (authData.user && authData.session) {
       const { error: profileError } = await supabase.from('profiles').upsert({
         id: authData.user.id,
         email,
         full_name: name,
         role
       });
+      console.log("Auth Data:", authData);
       if (profileError) throw profileError;
     }
+    
 
-    // 3. Handle email confirmation
-    if (!authData.session) {
-      return { 
-        success: true, 
-        requiresConfirmation: true,
-        message: 'Check your email to confirm your account'
-      };
-    }
+    
+  
 
-    return { success: true, redirectTo: '/dashboard' };
+   let redirectTo = '/dashboard';
+
+   if (role === 'ADMIN') redirectTo = '/dashboard/admin';
+   else if (role === 'COLLECTOR') redirectTo = '/dashboard/collector';
+    else if (role === 'RECYCLER') redirectTo = '/dashboard/recycler';
+   // Add your own custom routes here
+
+   return { success: true, redirectTo };
+
 
   } catch (error: any) {
     console.error('Signup error:', error);
