@@ -1,4 +1,3 @@
-// app/dashboard/collector/page.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -8,157 +7,121 @@ import { JobVerification } from '@/components/collector components/job-verificat
 import { InformalPickerIntegration } from '@/components/collector components/informal-picker-intergration';
 import { PickupRequestList } from '@/components/collector components/pickup-request-list';
 import { DashboardHeader } from '@/components/dashboard-header';
-imp
+import { useUser } from '@supabase/auth-helpers-react';
+
+type Tab = 'schedule' | 'requests' | 'tracking' | 'integration';
+
 export default function CollectorDashboard() {
-  const [activeTab, setActiveTab] = useState('schedule');
-  const [currentLocation, setCurrentLocation] = useState<{lat: number, lng: number} | null>(null);
-  const [pickupRequests, setPickupRequests] = useState([]);
-  const [assignedJobs, setAssignedJobs] = useState([]);
+  const user = useUser();
+  const userId = user?.id;
 
-  // Load current location
+  const [activeTab, setActiveTab] = useState<Tab>('schedule');
+  const [currentLocation, setCurrentLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [pickupRequests, setPickupRequests] = useState<any[]>([]);
+  const [assignedJobs, setAssignedJobs] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // 1️⃣ Fetch live data from our API
   useEffect(() => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setCurrentLocation({
-            lat: position.coords.latitude,
-            lng: position.coords.longitude
-          });
-        },
-        (error) => {
-          console.error("Error getting location:", error);
-        }
-      );
-    }
-  }, []);
+    if (!userId) return;
+    (async () => {
+      setLoading(true);
+      try {
+        const res = await fetch('/api/collector');
+        const json = await res.json();
+        if (!res.ok) throw new Error(json.error || 'Fetch failed');
+        setPickupRequests(json.pickupRequests);
+        setAssignedJobs(json.assignedJobs);
+        setError(null);
+      } catch (err: any) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [userId]);
 
-  // Fetch pickup requests (mock implementation)
+  // 2️⃣ Get browser location
   useEffect(() => {
-    // In a real app, this would be an API call
-    const mockRequests = [
-      {
-        id: 1,
-        address: "123 Green St, Eco City",
-        scheduledTime: "2023-11-15T09:00:00",
-        wasteType: "Recyclables",
-        status: "pending",
-        location: { lat: 12.3456, lng: 98.7654 }
-      },
-      // More requests...
-    ];
-    setPickupRequests(mockRequests);
-  }, []);
-
-  // Fetch assigned jobs (mock implementation)
-  useEffect(() => {
-    // In a real app, this would be an API call
-    const mockJobs = [
-      {
-        id: 101,
-        address: "456 Eco Ave, Green Town",
-        scheduledTime: "2023-11-15T10:30:00",
-        wasteType: "Organic",
-        status: "assigned",
-        location: { lat: 12.3567, lng: 98.7777 }
-      },
-      // More jobs...
-    ];
-    setAssignedJobs(mockJobs);
-  }, []);
-
-  const handleJobVerification = (jobId: number, verificationData: any) => {
-    // Handle job verification logic
-    console.log(`Verified job ${jobId} with data:`, verificationData);
-    // Update job status in the UI
-    setAssignedJobs(prevJobs => 
-      prevJobs.map(job => 
-        job.id === jobId ? { ...job, status: 'completed' } : job
-      )
+    navigator.geolocation?.getCurrentPosition(
+      pos => setCurrentLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+      err => console.error('Location error', err)
     );
+  }, []);
+
+  if (loading) return <p>Loading dashboard…</p>;
+  if (error) return <p className="text-red-500">Error: {error}</p>;
+
+  // 3️⃣ Handler stubs can call further API routes for mutation
+  const handleJobVerification = (jobId: number, verificationData: any) => {
+    // e.g. POST /api/assigned-jobs/verify
   };
 
   const handleInformalPickerAssignment = (pickerId: string, jobId: number) => {
-    // Handle assignment to informal picker
-    console.log(`Assigned job ${jobId} to informal picker ${pickerId}`);
-    // Update job status in the UI
-    setAssignedJobs(prevJobs => 
-      prevJobs.map(job => 
-        job.id === jobId ? { ...job, status: 'assigned_to_picker' } : job
-      )
-    );
+    // e.g. POST /api/assigned-jobs/assign-picker
+  };
+
+  const handleAcceptRequest = (requestId: number) => {
+    // e.g. POST /api/pickup-requests/accept
   };
 
   return (
     <div className="container mx-auto px-4 py-6">
-      <DashboardHeader 
-        title="Collection Dashboard" 
-        userType="collector" 
-      />
-      
+      <DashboardHeader title="Collection Dashboard" userType="collector" />
+
       <div className="flex mb-6 border-b">
-        <button
-          className={`py-2 px-4 font-medium ${activeTab === 'schedule' ? 'border-b-2 border-green-500 text-green-600' : 'text-gray-500'}`}
-          onClick={() => setActiveTab('schedule')}
-        >
-          Schedule
-        </button>
-        <button
-          className={`py-2 px-4 font-medium ${activeTab === 'requests' ? 'border-b-2 border-green-500 text-green-600' : 'text-gray-500'}`}
-          onClick={() => setActiveTab('requests')}
-        >
-          Pickup Requests
-        </button>
-        <button
-          className={`py-2 px-4 font-medium ${activeTab === 'tracking' ? 'border-b-2 border-green-500 text-green-600' : 'text-gray-500'}`}
-          onClick={() => setActiveTab('tracking')}
-        >
-          Real-time Tracking
-        </button>
-        <button
-          className={`py-2 px-4 font-medium ${activeTab === 'integration' ? 'border-b-2 border-green-500 text-green-600' : 'text-gray-500'}`}
-          onClick={() => setActiveTab('integration')}
-        >
-          Picker Integration
-        </button>
+        {(['schedule','requests','tracking','integration'] as Tab[]).map(tab => (
+          <button
+            key={tab}
+            className={`py-2 px-4 font-medium ${
+              activeTab === tab
+                ? 'border-b-2 border-green-500 text-green-600'
+                : 'text-gray-500'
+            }`}
+            onClick={() => setActiveTab(tab)}
+          >
+            {tab === 'schedule'
+              ? 'Schedule'
+              : tab === 'requests'
+              ? 'Pickup Requests'
+              : tab === 'tracking'
+              ? 'Real-time Tracking'
+              : 'Picker Integration'}
+          </button>
+        ))}
       </div>
 
       {activeTab === 'schedule' && (
         <div className="grid grid-cols-1 gap-6">
           <CollectionSchedule jobs={assignedJobs} currentLocation={currentLocation} />
-          <JobVerification 
-            jobs={assignedJobs.filter(job => job.status === 'assigned')} 
-            onVerify={handleJobVerification} 
+          <JobVerification
+            jobs={assignedJobs.filter(job => job.status === 'assigned')}
+            onVerify={handleJobVerification}
           />
         </div>
       )}
 
       {activeTab === 'requests' && (
-        <PickupRequestList 
-          requests={pickupRequests} 
-          currentLocation={currentLocation} 
-          onAcceptRequest={(requestId) => {
-            // Handle request acceptance
-            const request = pickupRequests.find(req => req.id === requestId);
-            if (request) {
-              setAssignedJobs(prev => [...prev, {...request, status: 'assigned'}]);
-              setPickupRequests(prev => prev.filter(req => req.id !== requestId));
-            }
-          }}
+        <PickupRequestList
+          requests={pickupRequests}
+          currentLocation={currentLocation}
+          onAcceptRequest={handleAcceptRequest}
         />
       )}
 
       {activeTab === 'tracking' && (
-        <RealtimeTrackingMap 
-          jobs={assignedJobs} 
-          currentLocation={currentLocation} 
-          onLocationUpdate={(newLocation) => setCurrentLocation(newLocation)}
+        <RealtimeTrackingMap
+          jobs={assignedJobs}
+          currentLocation={currentLocation}
+          onLocationUpdate={loc => setCurrentLocation(loc)}
         />
       )}
 
       {activeTab === 'integration' && (
-        <InformalPickerIntegration 
-          jobs={assignedJobs.filter(job => job.status === 'assigned')} 
-          onAssignToPicker={handleInformalPickerAssignment} 
+        <InformalPickerIntegration
+          jobs={assignedJobs.filter(job => job.status === 'assigned')}
+          onAssignToPicker={handleInformalPickerAssignment}
         />
       )}
     </div>
