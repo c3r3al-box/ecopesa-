@@ -1,5 +1,5 @@
 // app/dashboard/collector/page.tsx
-import { CollectionSchedule } from '@/components/collection-schedule';
+import { CollectionSchedule } from '@/components/collector components/collection-schedule';
 
 export default function CollectorDashboard() {
   return (

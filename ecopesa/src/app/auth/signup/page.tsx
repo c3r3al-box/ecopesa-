@@ -1,6 +1,7 @@
 // app/auth/signup/page.tsx
 'use client';
 import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 import { useActionState } from 'react';
 import { useFormStatus } from 'react-dom';
 import { signup } from '@/app/auth/signup/actions';
@@ -21,9 +22,11 @@ export default function SignupPage() {
   const { pending } = useFormStatus();
 
   // Handle redirects
-  if (state?.redirectTo) {
-    router.push(state.redirectTo);
-  }
+   useEffect(() => {
+    if (state?.redirectTo) {
+      router.push(state.redirectTo)
+    }
+  }, [state?.redirectTo, router])
 
   return (
     <div className="max-w-md mx-auto p-4 space-y-4">
