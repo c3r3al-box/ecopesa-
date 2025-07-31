@@ -68,8 +68,8 @@ export async function signup(
 
    if (role === 'ADMIN') redirectTo = '/dashboard/admin';
    else if (role === 'COLLECTOR') redirectTo = '/dashboard/collector';
-    else if (role === 'RECYCLER') redirectTo = '/dashboard/recycler';
-   // Add your own custom routes here
+   else if (role === 'RECYCLER') redirectTo = '/dashboard/recycler';
+  
 
    return { success: true, redirectTo };
 
