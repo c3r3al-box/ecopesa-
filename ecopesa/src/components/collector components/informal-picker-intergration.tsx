@@ -1,28 +1,37 @@
-// components/informal-picker-integration.tsx
+'use client';
+import React, { useState, useEffect } from 'react';
 import { Job } from '@/types/index';
 
 interface InformalPickerIntegrationProps {
   jobs: Job[];
-  onAssignToPicker: (pickerId: string, jobId: number) => void;
 }
 
-export function InformalPickerIntegration({ jobs, onAssignToPicker }: InformalPickerIntegrationProps) {
-  const [availablePickers, setAvailablePickers] = useState([
-    { id: 'picker1', name: 'Rajesh Kumar', rating: 4.5, vehicle: 'Cart' },
-    { id: 'picker2', name: 'Sunita Devi', rating: 4.2, vehicle: 'Bicycle' },
-    { id: 'picker3', name: 'Amit Singh', rating: 4.7, vehicle: 'Motorcycle' },
-  ]);
-
+export function InformalPickerIntegration({ jobs }: InformalPickerIntegrationProps) {
+  const [availablePickers, setAvailablePickers] = useState<any[]>([]);
   const [assignments, setAssignments] = useState<Record<number, string>>({});
+
+  useEffect(() => {
+    fetch('/api/pickers')
+      .then(res => res.json())
+      .then(setAvailablePickers)
+      .catch(err => console.error('Error fetching pickers:', err));
+  }, []);
 
   const handleAssignment = (jobId: number, pickerId: string) => {
     setAssignments(prev => ({ ...prev, [jobId]: pickerId }));
   };
 
-  const confirmAssignment = (jobId: number) => {
+  const confirmAssignment = async (jobId: number) => {
     const pickerId = assignments[jobId];
-    if (pickerId) {
-      onAssignToPicker(pickerId, jobId);
+    if (!pickerId) return;
+
+    const res = await fetch('/api/jobs/assign-picker', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ jobId, pickerId })
+    });
+
+    if (res.ok) {
       setAssignments(prev => {
         const newAssignments = { ...prev };
         delete newAssignments[jobId];
@@ -42,16 +51,14 @@ export function InformalPickerIntegration({ jobs, onAssignToPicker }: InformalPi
             <div key={job.id} className="border rounded-lg p-4">
               <h3 className="font-medium">{job.address}</h3>
               <p className="text-sm text-gray-600">
-                {new Date(job.scheduledTime).toLocaleTimeString()} - {job.wasteType}
+                {new Date(job.scheduledTime).toLocaleTimeString()} – {job.wasteType}
               </p>
-              
+
               <div className="mt-3">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Assign to Picker:
-                </label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Assign to Picker:</label>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                   {availablePickers.map((picker) => (
-                    <div 
+                    <div
                       key={picker.id}
                       onClick={() => handleAssignment(job.id, picker.id)}
                       className={`p-3 border rounded-lg cursor-pointer ${

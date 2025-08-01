@@ -53,10 +53,14 @@ export default function CollectorDashboard() {
   if (loading) return <p>Loading dashboard…</p>;
   if (error) return <p className="text-red-500">Error: {error}</p>;
 
-  // 3️⃣ Handler stubs can call further API routes for mutation
-  const handleJobVerification = (jobId: number, verificationData: any) => {
-    // e.g. POST /api/assigned-jobs/verify
-  };
+  const handleJobVerification = async (jobId: string, verificationData: any) => {
+  await fetch('/api/jobs/verify-completion', {
+    method: 'POST',
+    body: JSON.stringify({ jobId, ...verificationData }),
+    headers: { 'Content-Type': 'application/json' }
+  });
+};
+
 
   const handleInformalPickerAssignment = (pickerId: string, jobId: number) => {
     // e.g. POST /api/assigned-jobs/assign-picker

@@ -1,13 +1,15 @@
-// components/job-verification.tsx
-import { Job } from '@/types/index';
+'use client';
 import React, { useState } from 'react';
+import { Job } from '@/types/index';
+
 interface JobVerificationProps {
   jobs: Job[];
-  onVerify: (jobId: number, verificationData: any) => void;
 }
 
-export function JobVerification({ jobs, onVerify }: JobVerificationProps) {
-  const [verificationData, setVerificationData] = useState<Record<number, { weight: string; photo: string | null }>>({});
+export function JobVerification({ jobs }: JobVerificationProps) {
+  const [verificationData, setVerificationData] = useState<
+    Record<number, { weight: string; photo: string | null }>
+  >({});
 
   const handleVerificationChange = (jobId: number, field: string, value: string) => {
     setVerificationData(prev => ({
@@ -20,13 +22,29 @@ export function JobVerification({ jobs, onVerify }: JobVerificationProps) {
   };
 
   const handleTakePhoto = async (jobId: number) => {
-    try {
-      // This would use the device camera in a real app
-      // For demo purposes, we'll just use a placeholder
-      const mockPhoto = 'data:image/png;base64,...';
-      handleVerificationChange(jobId, 'photo', mockPhoto);
-    } catch (error) {
-      console.error('Error taking photo:', error);
+    const mockPhoto = 'data:image/png;base64,...'; // Replace with real photo logic
+    handleVerificationChange(jobId, 'photo', mockPhoto);
+  };
+
+  const handleVerify = async (jobId: number) => {
+    const data = verificationData[jobId];
+    if (!data?.weight || !data?.photo) return;
+
+    const res = await fetch('/api/jobs/verify-completion', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ jobId, weight: data.weight, photo: data.photo }),
+    });
+
+    if (res.ok) {
+      setVerificationData(prev => {
+        const updated = { ...prev };
+        delete updated[jobId];
+        return updated;
+      });
+    } else {
+      const result = await res.json();
+      console.error('Verification error:', result.error);
     }
   };
 
@@ -42,9 +60,7 @@ export function JobVerification({ jobs, onVerify }: JobVerificationProps) {
               <h3 className="font-medium">{job.address}</h3>
               <div className="mt-2 grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Waste Weight (kg)
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Waste Weight (kg)</label>
                   <input
                     type="number"
                     className="w-full p-2 border rounded"
@@ -53,17 +69,13 @@ export function JobVerification({ jobs, onVerify }: JobVerificationProps) {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Collection Proof
-                  </label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Collection Proof</label>
                   {verificationData[job.id]?.photo ? (
-                    <div className="relative">
-                      <img 
-                        src={verificationData[job.id].photo!} 
-                        alt="Collection proof" 
-                        className="h-20 w-20 object-cover rounded border"
-                      />
-                    </div>
+                    <img
+                      src={verificationData[job.id].photo!}
+                      alt="Collection proof"
+                      className="h-20 w-20 object-cover rounded border"
+                    />
                   ) : (
                     <button
                       onClick={() => handleTakePhoto(job.id)}
@@ -75,7 +87,7 @@ export function JobVerification({ jobs, onVerify }: JobVerificationProps) {
                 </div>
               </div>
               <button
-                onClick={() => onVerify(job.id, verificationData[job.id] || {})}
+                onClick={() => handleVerify(job.id)}
                 disabled={!verificationData[job.id]?.weight || !verificationData[job.id]?.photo}
                 className="mt-3 px-4 py-2 bg-green-600 text-white rounded disabled:bg-gray-300"
               >

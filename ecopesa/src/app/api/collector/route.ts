@@ -24,9 +24,10 @@ export async function GET(_req: NextRequest) {
 
   // Fetch jobs assigned to this collector
   const { data: assignedJobs, error: ajErr } = await supabase
-    .from('assigned_jobs')
+    .from('jobs')
     .select('*')
-    .eq('collector_id', userId);
+    .eq('job_type', 'collector')
+    .eq('assigned_to', userId);
 
   if (prErr || ajErr) {
     const message = prErr?.message || ajErr?.message || 'Unknown error';
