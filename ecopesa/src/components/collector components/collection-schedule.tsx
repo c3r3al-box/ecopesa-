@@ -61,7 +61,7 @@ export function CollectionSchedule({ jobs, currentLocation }: CollectionSchedule
                   }`}>
                     {job.status}
                   </span>
-                  <p className="text-sm mt-1">Distance: {calculateDistance(job.location.lat,job.location.lng,currentLocation.lat,currentLocation?.lng)}</p>
+                  <p className="text-sm mt-1">Distance: {getDistance(job.location)}</p>
                 </div>
               </div>
             </div>

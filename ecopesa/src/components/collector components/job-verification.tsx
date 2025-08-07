@@ -4,6 +4,7 @@ import { Job } from '@/types/index';
 
 interface JobVerificationProps {
   jobs: Job[];
+   onVerify: (jobId: string, verificationData: any) => Promise<void>;
 }
 
 export function JobVerification({ jobs }: JobVerificationProps) {

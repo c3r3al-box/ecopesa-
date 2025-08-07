@@ -4,7 +4,9 @@ import { Job } from '@/types/index';
 
 interface InformalPickerIntegrationProps {
   jobs: Job[];
+  onAssignToPicker: (pickerId: string, jobId: number) => void;
 }
+
 
 export function InformalPickerIntegration({ jobs }: InformalPickerIntegrationProps) {
   const [availablePickers, setAvailablePickers] = useState<any[]>([]);

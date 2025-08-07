@@ -21,7 +21,8 @@ export async function signup(
   const email = formData.get('email')?.toString().trim();
   const password = formData.get('password')?.toString();
   const name = formData.get('name')?.toString().trim();
-  const role = formData.get('role')?.toString() || 'USER';
+  const role = formData.get('role')?.toString().toUpperCase() || 'USER';
+
 
   if (!email || !email.includes('@')) {
     return { error: 'Invalid email address' };

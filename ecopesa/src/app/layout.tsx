@@ -1,13 +1,6 @@
-import type { Metadata, Viewport } from 'next'
-import { Inter } from 'next/font/google'
-import './globals.css'
-import Navbar from '@/components/Navbar'
-import PWAInstaller from '@/components/PWAInstaller'
-import SignupPage from '@/app/Register/[role]/page'
-import LoginPage from '@/app/login/page'
-const inter = Inter({ subsets: ['latin'] })
+import type { Metadata, Viewport } from 'next';
+import ClientLayout from './ClientLayout';
 
-// ✅ Metadata export (no themeColor here)
 export const metadata: Metadata = {
   title: {
     default: 'EcoPesa',
@@ -19,29 +12,16 @@ export const metadata: Metadata = {
     icon: '/favicon.ico',
     apple: '/apple-touch-icon.png',
   },
-}
+};
 
-// ✅ Viewport export with themeColor
 export const viewport: Viewport = {
   themeColor: '#10b981',
-}
+};
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className="scroll-smooth">
-      <body className={`${inter.className} antialiased`}>
-        <div className="min-h-screen flex flex-col">
-          <Navbar />
-          <main className="flex-grow">{children}</main>
-        
-         
-          </div>
-        <PWAInstaller />
-      </body>
+      <ClientLayout>{children}</ClientLayout>
     </html>
-  )
+  );
 }

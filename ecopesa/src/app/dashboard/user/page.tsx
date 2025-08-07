@@ -8,7 +8,6 @@ import { createBrowserClient } from '@/utils/supabase/client'
 
 
 
-
 export default function Home() {
   const router = useRouter()
   const [showModal, setShowModal] = useState(false)

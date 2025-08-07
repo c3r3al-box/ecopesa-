@@ -44,7 +44,7 @@ export async function auth() {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('role, organization_id')
+    .select('role')
     .eq('id', session.user.id)
     .single()
 
@@ -52,7 +52,7 @@ export async function auth() {
     user: {
       ...session.user,
       role: profile?.role || 'user',
-      organization_id: profile?.organization_id,
+    
     }
   }
 }

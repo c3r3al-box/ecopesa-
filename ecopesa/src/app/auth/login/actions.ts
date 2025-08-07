@@ -2,45 +2,47 @@
 
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-
 import { createClient } from '@/utils/supabase/server'
 
 export async function login(formData: FormData) {
   const supabase = await createClient()
 
-  // type-casting here for convenience
-  // in practice, you should validate your inputs
   const data = {
     email: formData.get('email') as string,
     password: formData.get('password') as string,
   }
 
-  const { error } = await supabase.auth.signInWithPassword(data)
+  const { error, data: authData } = await supabase.auth.signInWithPassword(data)
 
-  if (error) {
-    redirect('/error')
+  if (error || !authData?.user) {
+    redirect('/error'),
+    console.log('Login failed:', error)
   }
 
-  revalidatePath('/', 'layout')
-  redirect('/')
-}
+  // 🔍 Fetch the user's role from your profiles table
+  const { data: profile, error: profileError } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', authData.user.id)
+    .single()
 
-export async function signup(formData: FormData) {
-  const supabase = await createClient()
-
-  // type-casting here for convenience
-  // in practice, you should validate your inputs
-  const data = {
-    email: formData.get('email') as string,
-    password: formData.get('password') as string,
+  if (profileError || !profile?.role) {
+    redirect('/error'),
+    console.log('Profile fetch failed:', profileError)
   }
+  
 
-  const { error } = await supabase.auth.signUp(data)
-
-  if (error) {
-    redirect('/error')
+  // 🚦 Redirect based on role
+  switch (profile.role) {
+    case 'admin':
+      redirect('/dashboard/admin')
+    case 'recycler':
+      redirect('/dashboard/recycler')
+    case 'collector':
+      redirect('/dashboard/collector')
+    case 'user':
+      redirect('/dashboard/user')  
+    default:
+      redirect('/')
   }
-
-  revalidatePath('/', 'layout')
-  redirect('/')
 }
