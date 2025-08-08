@@ -62,9 +62,9 @@ export function InformalPickerIntegration({ jobs }: InformalPickerIntegrationPro
                   {availablePickers.map((picker) => (
                     <div
                       key={picker.id}
-                      onClick={() => handleAssignment(job.id, picker.id)}
+                      onClick={() => handleAssignment(Number(job.id), picker.id)}
                       className={`p-3 border rounded-lg cursor-pointer ${
-                        assignments[job.id] === picker.id ? 'border-green-500 bg-green-50' : 'hover:bg-gray-50'
+                        assignments[Number(job.id)] === picker.id ? 'border-green-500 bg-green-50' : 'hover:bg-gray-50'
                       }`}
                     >
                       <h4 className="font-medium">{picker.name}</h4>
@@ -76,9 +76,9 @@ export function InformalPickerIntegration({ jobs }: InformalPickerIntegrationPro
                 </div>
               </div>
 
-              {assignments[job.id] && (
+              {assignments[Number(job.id)] && (
                 <button
-                  onClick={() => confirmAssignment(job.id)}
+                  onClick={() => confirmAssignment(Number(job.id))}
                   className="mt-3 px-4 py-2 bg-blue-600 text-white rounded"
                 >
                   Confirm Assignment

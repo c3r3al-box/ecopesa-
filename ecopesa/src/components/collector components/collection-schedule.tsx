@@ -1,50 +1,32 @@
-// components/collection-schedule.tsx
-import { Job } from '@/types/index';
+import { JobVerification } from '@/components/collector components/job-verification';
 
-interface CollectionScheduleProps {
+import type { Job } from '@/types'; // Adjust the import path if needed
+
+type Location = {
+  lat: number;
+  lng: number;
+};
+
+type CollectionScheduleProps = {
   jobs: Job[];
-  currentLocation: { lat: number; lng: number } | null;
-}
-
-function calculateDistance(
-  lat1: number, 
-  lon1: number, 
-  lat2: number, 
-  lon2: number
-): string {
-  const R = 6371; // Earth radius in km
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLon = (lon2 - lon1) * Math.PI / 180;
-  const a = 
-    Math.sin(dLat/2) * Math.sin(dLat/2) +
-    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *  
-    Math.sin(dLon/2) * Math.sin(dLon/2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-  const distance = R * c;
-  return distance < 1 
-    ? `${Math.round(distance * 1000)} m` 
-    : `${distance.toFixed(1)} km`;
-} 
+  currentLocation: Location;
+};
 
 export function CollectionSchedule({ jobs, currentLocation }: CollectionScheduleProps) {
-  const getDistance = (jobLocation: { lat: number; lng: number }) => {
-    if (!currentLocation) return '--';
-    return calculateDistance(
-      currentLocation.lat,
-      currentLocation.lng,
-      jobLocation.lat,
-      jobLocation.lng
-    );
-  };
+  const assignedJobs = jobs.filter((job) => job.status === 'assigned');
+
+  function calculateDistance(arg0: number, arg1: number, lat: number, lng: number): import("react").ReactNode {
+    throw new Error('Function not implemented.');
+  }
 
   return (
     <div className="bg-white rounded-lg shadow p-6">
       <h2 className="text-xl font-semibold mb-4">Today's Collection Schedule</h2>
       <div className="space-y-4">
-        {jobs.length === 0 ? (
+        {assignedJobs.length === 0 ? (
           <p className="text-gray-500">No jobs scheduled for today</p>
         ) : (
-          jobs.map((job) => (
+          assignedJobs.map((job) => (
             <div key={job.id} className="border rounded-lg p-4 hover:bg-gray-50">
               <div className="flex justify-between items-start">
                 <div>
@@ -61,13 +43,28 @@ export function CollectionSchedule({ jobs, currentLocation }: CollectionSchedule
                   }`}>
                     {job.status}
                   </span>
-                  <p className="text-sm mt-1">Distance: {getDistance(job.location)}</p>
+                  <p className="text-sm mt-1">Distance: {calculateDistance(
+                    currentLocation?.lat ?? 0,
+                    currentLocation?.lng ?? 0,
+                    job.location.lat,
+                    job.location.lng
+                  )}</p>
                 </div>
               </div>
             </div>
           ))
         )}
       </div>
+
+      {/* Verification Section */}
+      <JobVerification
+        jobs={assignedJobs}
+        currentLocation={currentLocation}
+        onVerify={(jobId: string) => {
+          console.log(`Job ${jobId} verified`);
+          // Optionally refresh jobs or show toast
+        }}
+      />
     </div>
   );
 }

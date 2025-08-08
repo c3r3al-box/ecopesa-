@@ -1,51 +1,56 @@
 'use client';
+
 import React, { useState } from 'react';
-import { Job } from '@/types/index';
+import { Job } from '@/types';
 
 interface JobVerificationProps {
   jobs: Job[];
-   onVerify: (jobId: string, verificationData: any) => Promise<void>;
+  currentLocation: { lat: number; lng: number } | null;
+  onVerify: (jobId: string) => void;
 }
 
-export function JobVerification({ jobs }: JobVerificationProps) {
-  const [verificationData, setVerificationData] = useState<
-    Record<number, { weight: string; photo: string | null }>
-  >({});
+export function JobVerification({ jobs, currentLocation, onVerify }: JobVerificationProps) {
+  const [weightByJobId, setWeightByJobId] = useState<Record<string, string>>({});
+  const [verifyingJobId, setVerifyingJobId] = useState<string | null>(null);
+  const [errorByJobId, setErrorByJobId] = useState<Record<string, string>>({});
 
-  const handleVerificationChange = (jobId: number, field: string, value: string) => {
-    setVerificationData(prev => ({
-      ...prev,
-      [jobId]: {
-        ...prev[jobId],
-        [field]: value,
-      },
-    }));
-  };
+  const handleVerify = async (jobId: string) => {
+    const weight = weightByJobId[jobId];
+    if (!weight) {
+      setErrorByJobId((prev) => ({ ...prev, [jobId]: 'Weight is required' }));
+      return;
+    }
 
-  const handleTakePhoto = async (jobId: number) => {
-    const mockPhoto = 'data:image/png;base64,...'; // Replace with real photo logic
-    handleVerificationChange(jobId, 'photo', mockPhoto);
-  };
+    if (!currentLocation) {
+      setErrorByJobId((prev) => ({ ...prev, [jobId]: 'Location not available' }));
+      return;
+    }
 
-  const handleVerify = async (jobId: number) => {
-    const data = verificationData[jobId];
-    if (!data?.weight || !data?.photo) return;
+    setVerifyingJobId(jobId);
+    setErrorByJobId((prev) => ({ ...prev, [jobId]: '' }));
 
-    const res = await fetch('/api/jobs/verify-completion', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ jobId, weight: data.weight, photo: data.photo }),
-    });
-
-    if (res.ok) {
-      setVerificationData(prev => {
-        const updated = { ...prev };
-        delete updated[jobId];
-        return updated;
+    try {
+      const res = await fetch('/api/jobs/verify-completion', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          jobId,
+          weight,
+          location: currentLocation
+        })
       });
-    } else {
+
       const result = await res.json();
-      console.error('Verification error:', result.error);
+      if (!res.ok) {
+        setErrorByJobId((prev) => ({ ...prev, [jobId]: result.error || 'Verification failed' }));
+      } else {
+        setWeightByJobId((prev) => ({ ...prev, [jobId]: '' }));
+        if (onVerify) onVerify(jobId);
+      }
+    } catch (err) {
+      setErrorByJobId((prev) => ({ ...prev, [jobId]: 'Network error' }));
+    } finally {
+      setVerifyingJobId(null);
     }
   };
 
@@ -59,40 +64,33 @@ export function JobVerification({ jobs }: JobVerificationProps) {
           {jobs.map((job) => (
             <div key={job.id} className="border rounded-lg p-4">
               <h3 className="font-medium">{job.address}</h3>
-              <div className="mt-2 grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Waste Weight (kg)</label>
-                  <input
-                    type="number"
-                    className="w-full p-2 border rounded"
-                    value={verificationData[job.id]?.weight || ''}
-                    onChange={(e) => handleVerificationChange(job.id, 'weight', e.target.value)}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Collection Proof</label>
-                  {verificationData[job.id]?.photo ? (
-                    <img
-                      src={verificationData[job.id].photo!}
-                      alt="Collection proof"
-                      className="h-20 w-20 object-cover rounded border"
-                    />
-                  ) : (
-                    <button
-                      onClick={() => handleTakePhoto(job.id)}
-                      className="px-3 py-2 bg-gray-100 rounded text-sm"
-                    >
-                      Take Photo
-                    </button>
-                  )}
-                </div>
-              </div>
+              <p className="text-sm text-gray-600 mb-2">
+                Scheduled: {new Date(job.scheduledTime).toLocaleTimeString()} — {job.wasteType}
+              </p>
+
+              <label className="block text-sm font-medium text-gray-700 mb-1">Waste Weight (kg)</label>
+              <input
+                type="number"
+                className="w-full p-2 border rounded"
+                value={weightByJobId[job.id] || ''}
+                onChange={(e) =>
+                  setWeightByJobId((prev) => ({
+                    ...prev,
+                    [job.id]: e.target.value
+                  }))
+                }
+              />
+
+              {errorByJobId[job.id] && (
+                <p className="text-red-600 text-sm mt-1">{errorByJobId[job.id]}</p>
+              )}
+
               <button
                 onClick={() => handleVerify(job.id)}
-                disabled={!verificationData[job.id]?.weight || !verificationData[job.id]?.photo}
-                className="mt-3 px-4 py-2 bg-green-600 text-white rounded disabled:bg-gray-300"
+                disabled={verifyingJobId === job.id || !weightByJobId[job.id]}
+                className="mt-3 px-4 py-2 bg-green-600 text-white rounded disabled:opacity-50"
               >
-                Verify Completion
+                {verifyingJobId === job.id ? 'Verifying...' : 'Verify Completion'}
               </button>
             </div>
           ))}
