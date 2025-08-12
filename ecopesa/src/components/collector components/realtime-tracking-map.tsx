@@ -1,8 +1,7 @@
-// components/realtime-tracking-map.tsx
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
-import { Job } from '@/types/index';
+import { useEffect, useState } from 'react';
+import { Job } from '@/types';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -23,6 +22,19 @@ interface MapControllerProps {
   currentLocation: { lat: number; lng: number };
   onLocationUpdate: (location: { lat: number; lng: number }) => void;
 }
+interface LocalizedDateProps {
+  date: string | number | Date;
+}
+
+ function LocalizedDate({ date }: LocalizedDateProps) {
+  const [formatted, setFormatted] = useState('');
+
+  useEffect(() => {
+    setFormatted(new Date(date).toLocaleString());
+  }, [date]);
+
+  return <p>{formatted}</p>;
+}
 
 function MapController({ currentLocation, onLocationUpdate }: MapControllerProps) {
   const map = useMap();
@@ -31,7 +43,6 @@ function MapController({ currentLocation, onLocationUpdate }: MapControllerProps
     map.setView([currentLocation.lat, currentLocation.lng], 14);
   }, [currentLocation, map]);
 
-  // Set up location tracking
   useEffect(() => {
     if (navigator.geolocation) {
       const watchId = navigator.geolocation.watchPosition(
@@ -55,7 +66,7 @@ function MapController({ currentLocation, onLocationUpdate }: MapControllerProps
 
 interface RealtimeTrackingMapProps {
   jobs: Job[];
-  currentLocation: { lat: number; lng: number } | null;
+  currentLocation: { lat: number; lng: number };
   onLocationUpdate: (location: { lat: number; lng: number }) => void;
 }
 
@@ -70,93 +81,65 @@ export function RealtimeTrackingMap({
     setMapReady(true);
   }, []);
 
-  if (!mapReady || !currentLocation) {
+  if (!mapReady) {
     return (
-      <div className="bg-white rounded-lg shadow p-6">
-        <h2 className="text-xl font-semibold mb-4">Real-time Collection Tracking</h2>
-        <div className="w-full h-96 bg-gray-100 rounded-lg flex items-center justify-center">
-          <p>Loading map...</p>
-        </div>
+      <div className="w-full h-96 bg-gray-100 rounded-lg flex items-center justify-center">
+        <p>Initializing map...</p>
       </div>
     );
   }
 
+ 
+
+
   return (
-    <div className="bg-white rounded-lg shadow p-6">
-      <h2 className="text-xl font-semibold mb-4">Real-time Collection Tracking</h2>
-      <div className="w-full h-96 rounded-lg">
-        <MapContainer
-          center={[currentLocation.lat, currentLocation.lng]}
-          zoom={14}
-          style={{ height: '100%', width: '100%', borderRadius: '0.5rem' }}
-        >
-          <TileLayer
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-          />
-          
-          {/* Current location marker */}
-          <Marker position={[currentLocation.lat, currentLocation.lng]}>
-            <Popup>Your Location</Popup>
+    <div className="w-full h-124 rounded-lg mb-6">
+
+      <MapContainer
+        center={[currentLocation.lat, currentLocation.lng]}
+        zoom={14}
+        style={{ height: '100%', width: '100%', borderRadius: '0.5rem' }}
+      >
+        <TileLayer
+         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+         attribution="© OpenStreetMap contributors"
+        />       
+
+        
+        <Marker position={[currentLocation.lat, currentLocation.lng]}>
+          <Popup>Your Location</Popup>
+        </Marker>
+        
+        {jobs.filter(job => job.location?.lat && job.location?.lng).map((job) => (
+          <Marker 
+            key={job.id} 
+            position={[job.location.lat, job.location.lng]}
+            icon={L.icon({
+              iconUrl: job.status === 'completed' 
+                ? 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png'
+                : 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png',
+              iconSize: [25, 41],
+              iconAnchor: [12, 41],
+              popupAnchor: [1, -34],
+            })}
+          >
+            <Popup>
+              <div className="p-2">
+                <h3 className="font-bold">{job.address}</h3>
+                <p>{job.wasteType}</p>
+                <LocalizedDate date={job.scheduledTime} />
+
+                <p>Status: {job.status}</p>
+              </div>
+            </Popup>
           </Marker>
-          
-          {/* Job markers */}
-          {jobs.map((job) => (
-            <Marker 
-              key={job.id} 
-              position={[job.location.lat, job.location.lng]}
-              icon={L.icon({
-                iconUrl: job.status === 'completed' 
-                  ? 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png'
-                  : 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png',
-                iconSize: [25, 41],
-                iconAnchor: [12, 41],
-                popupAnchor: [1, -34],
-              })}
-            >
-              <Popup>
-                <div className="p-2">
-                  <h3 className="font-bold">{job.address}</h3>
-                  <p>{job.wasteType}</p>
-                  <p>{new Date(job.scheduledTime).toLocaleString()}</p>
-                  <p>Status: {job.status}</p>
-                </div>
-              </Popup>
-            </Marker>
-          ))}
-          
-          <MapController 
-            currentLocation={currentLocation} 
-            onLocationUpdate={onLocationUpdate} 
-          />
-        </MapContainer>
-      </div>
-      <div className="mt-4 flex flex-wrap gap-4">
-        <div className="flex items-center">
-          <img 
-            src="https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png" 
-            alt="Location icon" 
-            className="w-4 h-4 mr-2"
-          />
-          <span>Your Location</span>
-        </div>
-        <div className="flex items-center">
-          <img 
-            src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png" 
-            alt="Pending icon" 
-            className="w-4 h-4 mr-2"
-          />
-          <span>Pending Collection</span>
-        </div>
-        <div className="flex items-center">
-          <img 
-            src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png" 
-            alt="Completed icon" 
-            className="w-4 h-4 mr-2"
-          />
-          <span>Completed</span>
-        </div>
-      </div>
+        ))}
+        
+        <MapController 
+          currentLocation={currentLocation} 
+          onLocationUpdate={onLocationUpdate} 
+        />
+      </MapContainer>
     </div>
   );
 }

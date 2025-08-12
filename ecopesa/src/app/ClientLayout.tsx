@@ -9,7 +9,7 @@ const inter = Inter({ subsets: ['latin'] });
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   return (
-    <body className={`${inter.className} antialiased`}>
+    <div className={`${inter.className} antialiased`}>
       <SessionContextProvider supabaseClient={supabase}>
         <div className="min-h-screen flex flex-col">
           <header className="bg-emerald-600 text-white p-4">
@@ -19,6 +19,6 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
         </div>
         <PWAInstaller />
       </SessionContextProvider>
-    </body>
+    </div>
   );
 }
