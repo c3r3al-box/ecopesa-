@@ -6,7 +6,8 @@ import { supabase } from '@/utils/supabase/client';
 import { CollectionSchedule } from '@/components/collector components/collection-schedule';
 import { PickupRequestList } from '@/components/collector components/pickup-request-list';
 import { Job } from '@/types';
-
+import { JobVerification } from '@/components/collector components/job-verification';
+import { DashboardHeader } from '@/components/dashboard-header';
 import dynamic from 'next/dynamic';
 const RealtimeTrackingMap = dynamic(
   () => import('@/components/collector components/realtime-tracking-map').then(mod => mod.RealtimeTrackingMap),
@@ -92,7 +93,9 @@ export default function CollectorDashboard() {
   if (!user) return <p>Loading user...</p>;
 
   return (
+    
     <div className="space-y-6 max-w-5xl mx-auto py-6">
+      <DashboardHeader title="Collector Dashboard" userType="collector" />
       <h1 className="text-2xl font-bold">Hello, {user.email}</h1>
 
       {locationError ? (
@@ -147,6 +150,16 @@ export default function CollectorDashboard() {
             jobs={assignedJobs}
             currentLocation={currentLocation}
           />
+           {/* Verification Section */}
+          <JobVerification
+            jobs={assignedJobs}
+            currentLocation={currentLocation}
+            onVerify={(jobId: string) => {
+              console.log(`Job ${jobId} verified`);
+              // Optionally refresh jobs or show toast
+            }}
+          />
+          
         </>
       )}
     </div>

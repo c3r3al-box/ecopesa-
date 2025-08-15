@@ -1,4 +1,4 @@
-import { JobVerification } from '@/components/collector components/job-verification';
+import React from 'react';
 
 import type { Job } from '@/types'; // Adjust the import path if needed
 
@@ -43,12 +43,7 @@ export function CollectionSchedule({ jobs, currentLocation }: CollectionSchedule
                   }`}>
                     {job.status}
                   </span>
-                  <p className="text-sm mt-1">Distance: {calculateDistance(
-                    currentLocation?.lat ?? 0,
-                    currentLocation?.lng ?? 0,
-                    job.location.lat,
-                    job.location.lng
-                  )}</p>
+                 
                 </div>
               </div>
             </div>
@@ -56,15 +51,7 @@ export function CollectionSchedule({ jobs, currentLocation }: CollectionSchedule
         )}
       </div>
 
-      {/* Verification Section */}
-      <JobVerification
-        jobs={assignedJobs}
-        currentLocation={currentLocation}
-        onVerify={(jobId: string) => {
-          console.log(`Job ${jobId} verified`);
-          // Optionally refresh jobs or show toast
-        }}
-      />
+     
     </div>
   );
 }

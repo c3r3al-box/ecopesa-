@@ -1,7 +1,7 @@
 // components/dashboard-header.tsx
 interface DashboardHeaderProps {
   title: string;
-  userType: 'collector' | 'admin' | 'customer';
+  userType: 'collector' | 'admin' | 'user';
 }
 
 export function DashboardHeader({ title, userType }: DashboardHeaderProps) {
