@@ -26,8 +26,9 @@ export default function RecyclerDashboard() {
         .eq('assigned_to', user?.id) 
         .order('created_at', { ascending: false });
 
-      if (Error) console.error(Error);
-      else setJobs(data as RecyclerJob[]);
+      if (error) {
+        console.error('Error fetching jobs:', error.message);
+       } else setJobs(data as RecyclerJob[]);
       setLoading(false);
     };
 
