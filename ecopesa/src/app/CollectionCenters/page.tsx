@@ -1,6 +1,9 @@
 import Head from 'next/head'
-import dynamic from 'next/dynamic'
+import dynamic from 'next/dynamic';
 
+const CollectionMap = dynamic(() => import('@/components/collection-map'), {
+  ssr: false,
+});
 
 
 export default function CollectionCenters() {
@@ -82,8 +85,9 @@ export default function CollectionCenters() {
         <main className="container mx-auto p-4">
           {/* Map Component */}
            <div className="rounded-lg h-64 mb-6 overflow-hidden">
-            <Map centers={centers} />
-          </div>
+            <CollectionMap centers={centers} />
+           </div>
+
 
              {/* Nearby Centers */}
                    <h2 className="text-xl font-bold text-emerald-800 mb-4">Nearby Centers</h2>
