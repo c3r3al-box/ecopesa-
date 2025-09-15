@@ -4,20 +4,7 @@ import type { Center } from '@/types';
 
 export default function CollectionCenters() {
   const centers: Center[] = [
-    {
-      id: '1',
-      name: 'Nairobi Recycling Center',
-      address: 'Mombasa Road, Nairobi',
-      hours: '8AM - 6PM',
-      capacity: 1000,
-      current_load: 250,
-      is_full: false,
-      created_at: '2025-09-15T10:00:00Z',
-      location: {
-        type: 'Point',
-        coordinates: [36.817923, -1.318243], // [lng, lat]
-      },
-    },
+    
     {
       id: '2',
       name: 'Kibera Collection Point',
