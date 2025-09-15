@@ -20,3 +20,22 @@ export interface Job {
   request_id?: number;
   verification_data?: Record<string, any>;
 }
+
+export type Center = {
+  id: string; // UUID
+  name: string;
+  address: string;
+  hours: string; // e.g., "9AM - 5PM"
+  location: {
+    type: 'Point';
+    coordinates: [number, number]; // [longitude, latitude]
+  };
+  capacity: number;
+  current_load: number;
+  is_full: boolean;
+  created_at: string; // ISO timestamp
+};
+export type CenterWithUI = Center & {
+  distance?: string;
+  statusLabel?: 'Open' | 'Full' | 'Closed';
+};
