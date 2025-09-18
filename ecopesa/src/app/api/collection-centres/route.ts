@@ -47,3 +47,5 @@ export async function POST(req: NextRequest) {
 
   return NextResponse.json({ message: 'Insert successful', data }, { status: 201 });
 }
+
+//there is an issue with supabase ssr and cookies, here youve used asynchronous cookies tho its is depracated but sync causes errors so stick w this.
