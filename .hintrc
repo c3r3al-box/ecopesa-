@@ -18,6 +18,7 @@
         "aria-valid-attr-value": "off"
       }
     ],
-    "no-inline-styles": "off"
+    "no-inline-styles": "off",
+    "typescript-config/strict": "off"
   }
 }
