@@ -8,9 +8,9 @@ export async function POST(req: Request) {
 
   try {
     // 1. Get the session
-    const { data: { session } } = await supabase.auth.getSession()
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
 
-    if (!session) {
+    if (!user || authError) {
       return NextResponse.json(
         { error: 'Not authenticated' },
         { status: 401 }
@@ -24,9 +24,9 @@ export async function POST(req: Request) {
     const { error } = await supabase
       .from('profile')
       .insert([{
-        id: session.user.id,
+        id: user.id,
         full_name: body.full_name,
-        email: session.user.email, // Use email from session
+        email: user.email, // Use email from user
         phone_number: body.phone_number,
         joined_at: new Date().toISOString()
       }])

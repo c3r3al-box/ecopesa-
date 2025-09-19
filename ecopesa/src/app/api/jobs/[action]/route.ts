@@ -2,7 +2,8 @@ import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
 
-export async function POST(req: NextRequest, { params }: { params: { action: string } }) {
+export async function POST(req: NextRequest, props: { params: Promise<{ action: string }> }) {
+  const params = await props.params;
   const supabase = createRouteHandlerClient({ cookies });
   const { jobId, reason } = await req.json();
   const { action } = params;
