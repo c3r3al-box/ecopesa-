@@ -1,25 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerClient } from '@supabase/ssr';
+import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers';
 
 function getSupabaseClient() {
-    return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-        cookies: {
-            async get(name: string) {
-                const cookiestore = await cookies();
-                const cookie = cookiestore.get(name);
-                return cookie?.value;
-            },
-            set() {
-            },
-            remove() {
-
-            }
-        }
-    });
+    return createRouteHandlerClient({ cookies });
 }
 
 export async function POST(req: NextRequest) {

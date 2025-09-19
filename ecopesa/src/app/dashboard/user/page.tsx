@@ -106,7 +106,7 @@ const handleStartRecycling = async () => {
           </div>
         </section>
 
-       
+      {/* if user is not logged in get on that btw */}
         {showModal && (
   <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
     <div className="bg-white rounded-lg p-6 shadow-xl w-11/12 max-w-sm text-center">
