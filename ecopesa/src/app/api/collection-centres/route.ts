@@ -2,8 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs'
 import { cookies } from 'next/headers';
 
-async function getSupabaseClient() {
-  const cookieStore = cookies();
+export async function getSupabaseClient() {
+  const cookieStore =  cookies();
+  console.log('Cookies:', (await cookies()).getAll());
+ 
+
   return createRouteHandlerClient({ cookies: () => cookieStore });
 }
 
@@ -14,6 +17,8 @@ export async function POST(req: NextRequest) {
     data: { user },
     error: authError,
   } = await supabase.auth.getUser();
+  console.log ('User:', user);
+  console.log ('Auth error:', authError);
 
   if (!user || authError) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });

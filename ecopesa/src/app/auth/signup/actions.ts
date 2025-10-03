@@ -1,7 +1,7 @@
 // app/actions/auth/signup.ts
 'use server';
 import { createClient } from '@/utils/supabase/server';
-import { auth } from 'auth';
+
 
 export interface SignupState {
   error?: string;
@@ -49,17 +49,7 @@ export async function signup(
 
     if (authError) throw authError;
 
-    // 2. Create profile
-    if (authData.user && authData.session) {
-      const { error: profileError } = await supabase.from('profiles').upsert({
-        id: authData.user.id,
-        email,
-        full_name: name,
-        role
-      });
-      console.log("Auth Data:", authData);
-      if (profileError) throw profileError;
-    }
+    
     
 
     

@@ -15,9 +15,36 @@ export async function login(formData: FormData) {
   const { error, data: authData } = await supabase.auth.signInWithPassword(data)
 
   if (error || !authData?.user) {
-    redirect('/error'),
+    return redirect('/error'),
     console.log('Login failed:', error)
   }
+// 🔍 Check if profile exists
+const { data: profileCheck, error: profileCheckError } = await supabase
+  .from('profiles')
+  .select('role')
+  .eq('id', authData.user.id)
+  .single();
+
+if (profileCheckError && profileCheckError.code !== 'PGRST116') {
+  console.log('Profile fetch failed:', profileCheckError);
+  redirect('/error');
+}
+
+// 🧱 If profile is missing, insert it
+if (!profileCheck) {
+  const { error: insertError } = await supabase.from('profiles').insert({
+    id: authData.user.id,
+    email: authData.user.email,
+    full_name: authData.user.user_metadata.full_name,
+    role: authData.user.user_metadata.role || 'USER',
+  });
+
+  if (insertError) {
+    console.log('Profile insert failed:', insertError);
+    return redirect('/error');
+  }
+}
+
 
   // 🔍 Fetch the user's role from your profiles table
   const { data: profile, error: profileError } = await supabase
@@ -33,16 +60,21 @@ export async function login(formData: FormData) {
   
 
   // 🚦 Redirect based on role
-  switch (profile.role) {
-    case 'admin':
-      redirect('/dashboard/admin')
-    case 'recycler':
-      redirect('/dashboard/recycler')
-    case 'collector':
-      redirect('/dashboard/collector')
-    case 'user':
-      redirect('/dashboard/user')  
-    default:
-      redirect('/')
-  }
+ switch (profile.role.toUpperCase()) {
+  case 'ADMIN':
+    revalidatePath('/dashboard/admin');
+    return redirect('/dashboard/admin');
+  case 'RECYCLER':
+    revalidatePath('/dashboard/recycler');
+    return redirect('/dashboard/recycler');
+  case 'COLLECTOR':
+    revalidatePath('/dashboard/collector');
+    return redirect('/dashboard/collector');
+  case 'USER':
+    revalidatePath('/dashboard/user');
+    return redirect('/dashboard/user');
+  default:
+    return redirect('/');
+}
+
 }
