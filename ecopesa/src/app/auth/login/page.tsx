@@ -10,9 +10,10 @@ export default function LoginPage() {
   const handleSubmit = async (formData: FormData) => {
     try {
       await login(formData); // Uses Supabase auth
-      router.push('/dashboard');
     } catch (error) {
-      showToast('Login failed', 'error');
+      if (error instanceof Error && !error.message.includes('NEXT_REDIRECT')) {
+        showToast('Login failed', 'error');
+      }
     }
   };
   return (

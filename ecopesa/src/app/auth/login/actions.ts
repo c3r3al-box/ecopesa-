@@ -43,7 +43,7 @@ if (profileCheckError && profileCheckError.code !== 'PGRST116') {
 }
 
 // Insert if missing
-// Replace your current insertion logic with:
+
 if (!profileCheck) {
   const user = authData.user;
 
