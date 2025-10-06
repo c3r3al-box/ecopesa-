@@ -12,13 +12,25 @@ export async function login(formData: FormData) {
     password: formData.get('password') as string,
   }
 
-  const { error, data: authData } = await supabase.auth.signInWithPassword(data)
 
-  if (error || !authData?.user) {
-    return redirect('/error'),
-    console.log('Login failed:', error)
-  }
-// 🔍 Check if profile exists
+
+ const { error, data: authData } = await supabase.auth.signInWithPassword(data);
+ 
+if (error || !authData?.user || !authData.session) {
+  console.log('Login failed:', error);
+  return redirect('/error');
+}
+
+await supabase.auth.setSession(authData.session);
+
+const {data: fullUser, error: userFetchError } = await supabase.auth.getUser();
+
+if (userFetchError || !fullUser?.user) {
+  console.log("User fetch failed:", userFetchError);
+}
+const user = fullUser?.user;
+
+// Check if profile exists
 const { data: profileCheck, error: profileCheckError } = await supabase
   .from('profiles')
   .select('role')
@@ -27,17 +39,28 @@ const { data: profileCheck, error: profileCheckError } = await supabase
 
 if (profileCheckError && profileCheckError.code !== 'PGRST116') {
   console.log('Profile fetch failed:', profileCheckError);
-  redirect('/error');
+  return redirect('/error');
 }
 
-// 🧱 If profile is missing, insert it
+// Insert if missing
+// Replace your current insertion logic with:
 if (!profileCheck) {
-  const { error: insertError } = await supabase.from('profiles').insert({
-    id: authData.user.id,
-    email: authData.user.email,
-    full_name: authData.user.user_metadata.full_name,
-    role: authData.user.user_metadata.role || 'USER',
-  });
+  const user = authData.user;
+
+  // Better fallback values
+  const insertData = {
+    id: user.id,
+    email: user.email ?? user.user_metadata?.email ?? '',
+    full_name: user.user_metadata?.full_name ?? 
+               user.user_metadata?.name ?? 
+               user.email?.split('@')[0] ?? // fallback to username part of email
+               'User',
+    role: user.user_metadata?.role || 'USER',
+  };
+
+  console.log('Insert payload:', insertData);
+
+  const { error: insertError } = await supabase.from('profiles').insert(insertData);
 
   if (insertError) {
     console.log('Profile insert failed:', insertError);
@@ -45,22 +68,28 @@ if (!profileCheck) {
   }
 }
 
+// Fetch profile again
+const { data: profile, error: profileError } = await supabase
+  .from('profiles')
+  .select('role')
+  .eq('id', authData.user.id)
+  .single();
 
-  // 🔍 Fetch the user's role from your profiles table
-  const { data: profile, error: profileError } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', authData.user.id)
-    .single()
+if (profileError || !profile?.role) {
+  console.log('Profile fetch failed:', profileError);
+  return redirect('/error');
+}
 
-  if (profileError || !profile?.role) {
-    redirect('/error'),
-    console.log('Profile fetch failed:', profileError)
-  }
-  
+// Redirect based on role
+if (!profile || !profile.role) {
+  console.log('Profile is null or missing role');
+  return redirect('/error');
+}
 
-  // 🚦 Redirect based on role
- switch (profile.role.toUpperCase()) {
+
+
+// 🚦 Redirect based on role
+switch (profile.role.toUpperCase()) {
   case 'ADMIN':
     revalidatePath('/dashboard/admin');
     return redirect('/dashboard/admin');

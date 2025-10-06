@@ -42,15 +42,14 @@ export async function signup(
       email,
       password,
       options: {
-        data: { full_name: name,role },
+        data: { full_name: formData.get('full_name'), role },
         emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`
       }
     });
 
     if (authError) throw authError;
 
-    
-    
+    console.log('Auth data:', authData);
 
     
   
