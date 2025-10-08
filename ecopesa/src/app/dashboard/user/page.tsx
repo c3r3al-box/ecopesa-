@@ -30,6 +30,16 @@ const handleStartRecycling = async () => {
   } else {
     router.push('/auth/login'); // Redirect to login if not
   }
+
+  useEffect(() => {
+    const checkUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setShowModal(false);
+      }
+    };
+    checkUser();
+  }, []);
 };
 
   return (
@@ -42,14 +52,16 @@ const handleStartRecycling = async () => {
 
         {/* Hero Section */}
         <section className="py-8 px-4 bg-gradient-to-r from-emerald-500 to-emerald-400 text-white">
-          <div className="container mx-auto text-center">
-            <h2 className="text-3xl font-bold mb-4">Recycle & Earn Rewards</h2>
-            <p className="mb-6">Turn your waste into EcoPesa points and redeem exciting rewards</p>
+          <div className="container mx-auto text-center max-w-2xl">
+            <h2 className="text-3xl font-extrabold mb-4 leading-tight">Recycle & Earn Rewards</h2>
+            <p className="mb-6 text-lg">Turn your waste into EcoPesa points and redeem exciting rewards</p>
             <button
                onClick={handleStartRecycling}
+               
                className="bg-white text-emerald-600 px-6 py-3 rounded-full font-bold shadow-lg hover:bg-gray-100 transition"
-              >             
-                 Start Recycling
+              >
+                
+                Start Recycling
               </button>
 
           </div>
@@ -64,7 +76,7 @@ const handleStartRecycling = async () => {
             <h3 className="text-2xl font-bold text-emerald-800 mb-8 text-center">How It Works</h3>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              <div className="bg-white p-6 rounded-lg shadow-md text-center">
+              <div className="bg-white p-6 rounded-lg shadow-md text-center hover:shadow-lg transition">
                 <div className="bg-emerald-100 w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-4">
                   <span className="text-emerald-600 text-2xl font-bold">1</span>
                 </div>
@@ -72,7 +84,7 @@ const handleStartRecycling = async () => {
                 <p className="text-gray-600">Gather plastic, glass, paper and other recyclable materials</p>
               </div>
               
-              <div className="bg-white p-6 rounded-lg shadow-md text-center">
+              <div className="bg-white p-6 rounded-lg shadow-md text-center hover:shadow-lg transition">
                 <div className="bg-emerald-100 w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-4">
                   <span className="text-emerald-600 text-2xl font-bold">2</span>
                 </div>
@@ -80,7 +92,7 @@ const handleStartRecycling = async () => {
                 <p className="text-gray-600">Visit any EcoPesa collection center near you</p>
               </div>
               
-              <div className="bg-white p-6 rounded-lg shadow-md text-center">
+              <div className="bg-white p-6 rounded-lg shadow-md text-center hover:shadow-lg transition">
                 <div className="bg-emerald-100 w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-4">
                   <span className="text-emerald-600 text-2xl font-bold">3</span>
                 </div>
@@ -98,8 +110,8 @@ const handleStartRecycling = async () => {
             <p className="mb-6 text-gray-700 max-w-2xl mx-auto">Join thousands of people already earning from their waste</p>
             <Link
               href="/CollectionCenters"
-              onClick={() => setShowModal(true)}
-              className="bg-emerald-600 text-white px-8 py-3 rounded-full font-bold shadow-md hover:bg-emerald-700 transition inline-block"
+             
+              className="bg-emerald-600 text-white px-8 py-3 rounded-full font-bold shadow-md hover:bg-emerald-700 transition inline-block uppercase tracking-wide"
             >
               find a collection center
             </Link>
@@ -108,8 +120,8 @@ const handleStartRecycling = async () => {
 
       {/* if user is not logged in get on that btw */}
         {showModal && (
-  <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div className="bg-white rounded-lg p-6 shadow-xl w-11/12 max-w-sm text-center">
+  <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50 transition-opacity">
+    <div className="bg-white rounded-lg p-6 shadow-2xl w-11/12 max-w-sm text-center animate-fade-in">
       <h2 className="text-xl font-bold mb-4 text-emerald-800">You're not logged in</h2>
       <p className="mb-6 text-gray-600">To start recycling, please log in or create an account.</p>
       <div className="flex justify-center space-x-4">

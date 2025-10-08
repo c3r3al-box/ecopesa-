@@ -108,17 +108,19 @@ export default function CollectorDashboard() {
         <>
           <div className="bg-white rounded-lg shadow p-6">
             <h2 className="text-xl font-semibold mb-4">Real-time Collection Tracking</h2>
+            <div className="rounded-lg overflow-hidden border shadow-sm h-64 bg-white">
             <RealtimeTrackingMap
               jobs={assignedJobs}
               currentLocation={currentLocation}
               onLocationUpdate={handleLocationUpdate}
             />
+            </div>
             <div className="mt-4 flex flex-wrap gap-4">
               <div className="flex items-center">
                 <img 
                   src="https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png" 
                   alt="Location icon" 
-                  className="w-4 h-4 mr-2"
+                  className="w-5 h-5 mr-2"
                 />
                 <span>Your Location</span>
               </div>
@@ -126,7 +128,7 @@ export default function CollectorDashboard() {
                 <img 
                   src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png" 
                   alt="Pending icon" 
-                  className="w-4 h-4 mr-2"
+                  className="w-5 h-5 mr-2"
                 />
                 <span>Pending Collection</span>
               </div>
@@ -134,7 +136,7 @@ export default function CollectorDashboard() {
                 <img 
                   src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png" 
                   alt="Completed icon" 
-                  className="w-4 h-4 mr-2"
+                  className="w-5 h-5 mr-2"
                 />
                 <span>Completed</span>
               </div>
