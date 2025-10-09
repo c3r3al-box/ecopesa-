@@ -28,18 +28,10 @@ const handleStartRecycling = async () => {
   if (user) {
     router.push('/profile'); // Redirect to profile if user is logged in
   } else {
-    router.push('/auth/login'); // Redirect to login if not
+    setShowModal(true); // Redirect to login if not
   }
 
-  useEffect(() => {
-    const checkUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        setShowModal(false);
-      }
-    };
-    checkUser();
-  }, []);
+  
 };
 
   return (
@@ -51,7 +43,7 @@ const handleStartRecycling = async () => {
      
 
         {/* Hero Section */}
-        <section className="py-8 px-4 bg-gradient-to-r from-emerald-500 to-emerald-400 text-white">
+        <section className="py-8 px-4 bg-gradient-to-r from-emerald-800 to-emerald-700 text-white rounded xl">
           <div className="container mx-auto text-center max-w-2xl">
             <h2 className="text-3xl font-extrabold mb-4 leading-tight">Recycle & Earn Rewards</h2>
             <p className="mb-6 text-lg">Turn your waste into EcoPesa points and redeem exciting rewards</p>

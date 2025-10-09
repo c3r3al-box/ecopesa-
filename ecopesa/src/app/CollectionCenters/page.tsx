@@ -63,7 +63,7 @@ export default function CollectionCenters() {
       </Head>
 
       <div className="min-h-screen bg-emerald-50">
-        <header className="bg-emerald-600 text-white p-6 shadow-md">
+        <header className="bg-emerald-800 text-white p-6 shadow-md">
           <div className="container mx-auto flex justify-between items-center">
             <div className="flex items-center space-x-2">
               <button title="Back" aria-label="Back" onClick={() => window.history.back ()} className='p-2 rounded-full hover:bg-emerald-700 transition'>
@@ -82,13 +82,14 @@ export default function CollectionCenters() {
         </header>
 
         <main className="container mx-auto p-4">
-          <div className="rounded-xl h-72 mb-8 overflow-hidden shadow-md border border-emerald-200">
+          <div className="rounded-xl h-72 mb-8  shadow-md border border-emerald-200">
             <CollectionMapWrapper centers={centers} />
           </div>
 
           <h2 className="text-xl font-bold text-emerald-800 mb-4">Nearby Centers</h2>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+
             {centers.map(center => {
               const statusLabel = center.is_full ? 'Full' : 'Open';
               const distance = '—'; // placeholder until geolocation is added

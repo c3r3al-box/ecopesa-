@@ -32,7 +32,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className="scroll-smooth">
       <body className={`${inter.className} bg-gradient-to-br from-emerald-50 to-green-50 text-gray-800 antialiased`}>
         {/* Background decorative elements */}
-        <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="fixed inset-0 pointer-events-none">
           <div className="absolute top-0 left-1/4 w-32 h-32 rounded-full bg-emerald-100 opacity-20 blur-xl"></div>
           <div className="absolute bottom-0 right-1/4 w-64 h-64 rounded-full bg-green-100 opacity-20 blur-xl"></div>
         </div>

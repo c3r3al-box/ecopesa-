@@ -12,10 +12,10 @@ export default function ClientLayout({ children }: { children: React.ReactNode }
     <div className={`${inter.className} antialiased`}>
       <SessionContextProvider supabaseClient={supabase}>
         <div className="min-h-screen flex flex-col">
-          <header className="bg-emerald-600 text-white p-4">
+          <header className="bg-emerald-900 text-white p-4">
             <h1 className="text-xl font-bold">EcoPesa</h1>
           </header>
-          <main className="flex-grow">{children}</main>
+          <main className="flex-grow overflow-auto scrollbar-hide">{children}</main>
         </div>
         <PWAInstaller />
       </SessionContextProvider>
