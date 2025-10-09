@@ -50,7 +50,7 @@ export function Sidebar() {
   };
 
   return (
-    <div className="w-64 bg-gray-100 p-4 h-full">
+    <div className="w-64 bg-gray-100 p-4 h-screen overflow-hidden">
       <nav className="space-y-2">
         {[...commonLinks, ...(roleSpecificLinks[role as keyof typeof roleSpecificLinks] || [])].map((link) => (
           <Link

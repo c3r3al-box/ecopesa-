@@ -103,7 +103,7 @@ const handleStartRecycling = async () => {
             <Link
               href="/CollectionCenters"
              
-              className="bg-emerald-600 text-white px-8 py-3 rounded-full font-bold shadow-md hover:bg-emerald-700 transition inline-block uppercase tracking-wide"
+              className="bg-emerald-800 text-white px-8 py-3 rounded-full font-bold shadow-md hover:bg-emerald-900 transition inline-block uppercase tracking-wide"
             >
               find a collection center
             </Link>

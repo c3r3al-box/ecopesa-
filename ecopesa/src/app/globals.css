@@ -5,6 +5,13 @@
     @apply bg-emerald-50 text-gray-800;
     -webkit-tap-highlight-color: transparent;
   }
+  html,
+  body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+  }
 
   /* For PWA install prompt */
   #installContainer {

@@ -9,15 +9,16 @@ const inter = Inter({ subsets: ['latin'] });
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className={`${inter.className} antialiased`}>
+    <div className="h-screen flex flex-col overflow-hidden">
       <SessionContextProvider supabaseClient={supabase}>
-        <div className="h-screen flex flex-col overflow-hidden">
-          <header className="bg-emerald-900 text-white p-4">
-            <h1 className="text-xl font-bold">EcoPesa</h1>
-          </header>
-          
-          <main className="flex-grow overflow-y-scroll scrollbar-hide">{children}</main>
-        </div>
+        <header className="bg-emerald-900 text-white p-4">
+          <h1 className="text-xl font-bold">EcoPesa</h1>
+        </header>
+
+        <main className="flex-grow min-h-0 overflow-y-auto scrollbar-hide">
+          {children}
+        </main>
+
         <PWAInstaller />
       </SessionContextProvider>
     </div>
