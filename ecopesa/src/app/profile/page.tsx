@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useUser } from '@supabase/auth-helpers-react';
 import { supabase } from '@/utils/supabase/client';
+import Link from 'next/dist/client/link';
 
 export default function ProfilePage() {
   const user = useUser();
@@ -86,9 +87,13 @@ export default function ProfilePage() {
             <p className="text-gray-700 mb-4">
               You have <span className="font-bold">{stats.ecoPoints}</span> EcoPesa points available.
             </p>
-            <button className="bg-emerald-800 text-white px-6 py-2 rounded-full font-semibold hover:bg-emerald-700 transition">
+           <Link
+              href="/rewards"
+             
+              className="bg-emerald-600 text-white px-8 py-3 rounded-full font-bold shadow-md hover:bg-emerald-700 transition inline-block sentencecase tracking-wide"
+            >
               View Rewards
-            </button>
+            </Link>
           </div>
         </main>
       </div>
