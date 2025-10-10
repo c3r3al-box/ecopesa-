@@ -81,20 +81,37 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          {/* 🎁 Rewards */}
-          <div className="mt-8 bg-emerald-100 p-6 rounded-lg shadow text-center">
-            <h3 className="text-lg font-bold text-emerald-800 mb-2">Redeem Your Points</h3>
-            <p className="text-gray-700 mb-4">
-              You have <span className="font-bold">{stats.ecoPoints}</span> EcoPesa points available.
-            </p>
-           <Link
-              href="/rewards"
-             
-              className="bg-emerald-600 text-white px-8 py-3 rounded-full font-bold shadow-md hover:bg-emerald-700 transition inline-block sentencecase tracking-wide"
-            >
-              View Rewards
-            </Link>
-          </div>
+         <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+           {/* 🎁 Rewards Card */}
+           <div className="bg-emerald-100 p-6 rounded-lg shadow text-center">
+             <h3 className="text-lg font-bold text-emerald-800 mb-2">Redeem Your Points</h3>
+             <p className="text-gray-700 mb-4">
+               You have <span className="font-bold">{stats.ecoPoints}</span> EcoPesa points available.
+             </p>
+             <Link
+               href="/rewards"
+               className="bg-emerald-600 text-white px-8 py-3 rounded-full font-bold shadow-md hover:bg-emerald-700 transition inline-block tracking-wide"
+             >
+               View Rewards
+             </Link>
+           </div>
+         
+           {/* 📍 Journey Logging Card */}
+           <div className="bg-emerald-100 p-6 rounded-lg shadow text-center border border-emerald-200">
+             <h3 className="text-lg font-bold text-emerald-800 mb-2">Log Your Recycling Journey</h3>
+             <p className="text-gray-700 mb-4">
+               Keep track of the collection centers you’ve visited and get verified for EcoPesa points.
+             </p>
+             <Link
+               href="/journey"
+               className="bg-emerald-600 text-white px-8 py-3 rounded-full font-bold shadow-md hover:bg-emerald-700 transition inline-block tracking-wide"
+             >
+               Log Journey
+             </Link>
+           </div>
+         </div>
+
+
         </main>
       </div>
     </div>
