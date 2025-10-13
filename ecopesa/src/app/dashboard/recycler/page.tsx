@@ -1,128 +1,135 @@
 'use client';
 
-import { useState, useEffect, use } from 'react';
-import { supabase } from '@/utils/supabase-browser';
-import { RealtimeTrackingMap } from '@/components/collector components/realtime-tracking-map';
-import { DashboardHeader } from '@/components/dashboard-header';
-import { Job } from '@/types';
+import { useEffect, useState } from 'react';
 import { useUser } from '@supabase/auth-helpers-react';
-
+import { supabase } from '@/utils/supabase/client';
 
 export default function RecyclerDashboard() {
-  const [jobs, setJobs] = useState<Job[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [currentLocation, setCurrentLocation] = useState<{ lat: number; lng: number }>({
-    lat: -1.0,
-    lng: 36.0,
-  });
-
   const user = useUser();
+  const [recycler, setRecycler] = useState<any>(null);
+  const [center, setCenter] = useState<any>(null);
+  const [logs, setLogs] = useState<any[]>([]);
+  const [loadUpdate, setLoadUpdate] = useState('');
+  const [status, setStatus] = useState('');
 
   useEffect(() => {
-    const fetchJobs = async () => {
-      setLoading(true);
+    const fetchRecyclerData = async () => {
+      if (!user?.id) return;
 
-      if (!user?.id) {
-        console.error('User not authenticated or missing ID');
-        setLoading(false);
-        return;
-      }
+      const { data: recyclerData } = await supabase
+        .from('recyclers')
+        .select('staff_pin, assigned_centre_id')
+        .eq('user_id', user.id)
+        .maybeSingle();
 
-     const { data: jobsData, error: jobsError } = await supabase
-       .from('jobs')
-       .select('id, address, scheduled_time, waste_type, description, status, assigned_to, picker_id, geo_location, weight_verified, created_by');
-     
-     if (jobsError) {
-       console.error('Error fetching jobs:', jobsError.message);
-     } else {
-       const normalizedJobs: Job[] = jobsData.map((job: any) => ({
-         id: job.id,
-         address: job.address,
-         scheduledTime: job.scheduled_time,
-         wasteType: job.waste_type,
-         description: job.description,
-         status: job.status,
-         assigned_to: job.assigned_to,
-         picker_id: job.picker_id,
-         location: job.geo_location, // assuming geo_location is already { lat, lng }
-         weight_verified: job.weight_verified,
-         created_by: job.created_by,
-       }));
-     
-       setJobs(normalizedJobs);
-   }
+      if (!recyclerData) return;
 
+      setRecycler(recyclerData);
 
-      setLoading(false);
+      const { data: centerData } = await supabase
+        .from('collection_centres')
+        .select('*')
+        .eq('id', recyclerData.assigned_centre_id)
+        .maybeSingle();
+
+      setCenter(centerData);
+
+      const { data: pendingLogs } = await supabase
+        .from('recycling_logs')
+        .select('id, user_id, recycled_weight, verified')
+        .eq('center_id', recyclerData.assigned_centre_id)
+        .eq('verified', false);
+
+      setLogs(pendingLogs || []);
     };
 
-    fetchJobs();
+    fetchRecyclerData();
   }, [user]);
 
-  
-
-  const markComplete = async (jobId: string) => {
+  const handleVerifyLog = async (logId: string) => {
     const { error } = await supabase
-      .from('jobs')
-      .update({ status: 'completed' })
-      .eq('id', jobId);
+      .from('recycling_logs')
+      .update({ verified: true, verified_by: user?.id })
+      .eq('id', logId);
 
     if (!error) {
-      setJobs(prev =>
-        prev.map(job =>
-          job.id === jobId ? { ...job, status: 'completed' } : job
-        )
-      );
+      setLogs(prev => prev.filter(log => log.id !== logId));
+    }
+  };
+
+  const handleUpdateLoad = async () => {
+    if (!center?.id || !loadUpdate) return;
+
+    const { error } = await supabase
+      .from('collection_centres')
+      .update({ current_load: center.current_load + parseFloat(loadUpdate) })
+      .eq('id', center.id);
+
+    if (error) {
+      setStatus('Failed to update load');
+    } else {
+      setStatus('Load updated successfully');
+      setLoadUpdate('');
     }
   };
 
   return (
-    <div className="p-6 bg-white shadow rounded">
-  <DashboardHeader title="Recycler Dashboard" userType="recycler" />
-  <h1 className="text-2xl font-bold mb-4">Hello, {user ? user.email : 'Guest'}</h1>
+    <div className="min-h-screen bg-emerald-50 p-6">
+      <h1 className="text-2xl font-bold text-emerald-800 mb-4">Recycler Dashboard</h1>
 
-  {/* 🗺️ Compact Map */}
-  <div className="mb-6">
-    <h2 className="text-lg font-semibold mb-2">Your Location & Job Map</h2>
-    <div className="rounded-lg overflow-hidden border shadow-sm h-64">
-      <RealtimeTrackingMap
-        jobs={jobs}
-        currentLocation={currentLocation}
-        onLocationUpdate={setCurrentLocation}
-      />
-    </div>
-  </div>
-
-  {/* 📋 Assigned Jobs */}
-  <div>
-    <h2 className="text-lg font-semibold mb-4">Assigned Jobs</h2>
-    {loading ? (
-      <p>Loading jobs...</p>
-    ) : jobs.length === 0 ? (
-      <p>No assigned jobs for you right now.</p>
-    ) : (
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {jobs.map(job => (
-          <div key={job.id} className="border p-4 rounded-lg shadow-sm bg-gray-50">
-            <p><strong>📍 Address:</strong> {job.address}</p>
-            <p><strong>🕒 Scheduled:</strong> {new Date(job.scheduledTime).toLocaleString()}</p>
-            <p><strong>♻️ Waste Type:</strong> {job.wasteType}</p>
-            {job.description && <p><strong>📝 Description:</strong> {job.description}</p>}
-            <p><strong>Status:</strong> {job.status}</p>
-
-            <button
-              onClick={() => markComplete(job.id)}
-              disabled={job.status === 'completed'}
-              className="mt-3 px-4 py-2 bg-green-600 text-white rounded disabled:bg-gray-400"
-            >
-              {job.status === 'completed' ? '✅ Completed' : 'Mark as Complete'}
-            </button>
+      {recycler && center && (
+        <>
+          <div className="bg-white p-4 rounded shadow mb-6">
+            <h2 className="text-lg font-semibold text-emerald-700 mb-2">Assigned Centre</h2>
+            <p><strong>Name:</strong> {center.name}</p>
+            <p><strong>Current Load:</strong> {center.current_load} kg</p>
+            <p><strong>Capacity:</strong> {center.capacity} kg</p>
+            <p><strong>Staff PIN:</strong> <span className="font-mono text-lg">{recycler.staff_pin}</span></p>
           </div>
-        ))}
-      </div>
-    )}
-  </div>
-</div>
 
+          <div className="bg-white p-4 rounded shadow mb-6">
+            <h2 className="text-lg font-semibold text-emerald-700 mb-2">Update Centre Load</h2>
+            <input
+              type="number"
+              value={loadUpdate}
+              onChange={(e) => setLoadUpdate(e.target.value)}
+              className="border p-2 rounded w-full mb-2"
+              placeholder="Enter weight received (kg)"
+            />
+            <button
+              onClick={handleUpdateLoad}
+              className="bg-emerald-600 text-white px-4 py-2 rounded font-bold hover:bg-emerald-700"
+            >
+              Update Load
+            </button>
+            {status && <p className="mt-2 text-emerald-700">{status}</p>}
+          </div>
+
+          <div className="bg-white p-4 rounded shadow">
+            <h2 className="text-lg font-semibold text-emerald-700 mb-4">Pending Logs to Verify</h2>
+            {logs.length === 0 ? (
+              <p className="text-gray-600">No pending logs at this time.</p>
+            ) : (
+              <ul className="space-y-4">
+                {logs.map(log => (
+                  <li key={log.id} className="border p-3 rounded flex justify-between items-center">
+                    <div>
+                      <p><strong>User:</strong> {log.user_id}</p>
+                      <p><strong>Weight:</strong> {log.recycled_weight} kg</p>
+                    </div>
+                    <button
+                      onClick={() => handleVerifyLog(log.id)}
+                      className="bg-emerald-600 text-white px-4 py-2 rounded hover:bg-emerald-700"
+                    >
+                      Verify
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </>
+      )}
+    </div>
   );
 }

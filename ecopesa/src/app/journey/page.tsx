@@ -17,7 +17,7 @@ export default function JourneyPage() {
   const [recycledWeight, setRecycledWeight] = useState('');
   useEffect(() => {
     const fetchCenters = async () => {
-      const { data, error } = await supabase.from('collection_centers').select('id, name');
+      const { data, error } = await supabase.from('collection_centres').select('id, name');
       if (error) console.error('Error fetching centers:', error.message);
       else setCenters(data);
     };
