@@ -29,8 +29,9 @@ export default function SignupPage() {
   }, [state?.redirectTo, router])
 
   return (
-    <div className="max-w-md mx-auto p-4 space-y-4">
-      <h1 className="text-2xl font-bold text-center">Create Account</h1>
+    <div className="min-h-screen bg-emerald-50 flex items-center justify-center px-4">
+      <div className="max-w-md w-full bg-white p-8 rounded-lg shadow-lg">
+        <h1 className="text-2xl font-bold text-emerald-800 mb-6 text-center">Create account</h1>
       
       {state?.error && (
         <div className="p-2 bg-red-100 text-red-700 rounded-md">
@@ -63,7 +64,9 @@ export default function SignupPage() {
         </div>
 
         <div>
+          
           <Label htmlFor="password">Password</Label>
+          
           <Input
             id="password"
             name="password"
@@ -72,18 +75,23 @@ export default function SignupPage() {
             minLength={8}
           />
         </div>
-
-        <select name="role" required>
-         <option value="user">Regular User</option>
-          <option value="collector">Waste Collector</option>
-          <option value="recycler">Recycler</option>
-        </select>
+        <div>
+          <Label htmlFor="role">Select Role</Label>
+          <div className="max-w-md w-full bg-white p-2 rounded-lg shadow-lg">
+           <select name="role" required>
+            <option value="user">Regular User</option>
+             <option value="collector">Waste Collector</option>
+             <option value="recycler">Recycler</option>
+           </select>
+        </div>
+        </div>
 
 
         <Button type="submit" className="w-full" disabled={pending}>
           {pending ? 'Creating account...' : 'Sign Up'}
         </Button>
       </form>
+      </div>
     </div>
   );
 }
