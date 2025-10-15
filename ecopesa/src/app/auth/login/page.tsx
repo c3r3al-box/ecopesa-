@@ -37,7 +37,7 @@ export default function LoginPage() {
               name="email"
               type="email"
               required
-              placeholder="you@example.com"
+              
               className="mt-1"
             />
           </div>
