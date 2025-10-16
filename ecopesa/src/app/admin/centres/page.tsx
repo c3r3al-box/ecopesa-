@@ -22,7 +22,7 @@ export default function AdminCentresPage() {
   const { showToast, ToastComponent } = useToast();
 
   const fetchCentres = async () => {
-    const res = await fetch('/api/admin/centres', { method: 'GET' });
+    const res = await fetch('/api/collection-centres', { method: 'GET' });
     const result = await res.json();
     if (res.ok) setCentres(result.data || []);
   };
@@ -37,7 +37,7 @@ export default function AdminCentresPage() {
       return;
     }
 
-    const res = await fetch('/api/admin/centres', {
+    const res = await fetch('/api/collection-centres', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
