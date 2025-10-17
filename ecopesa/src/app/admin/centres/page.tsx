@@ -16,7 +16,7 @@ type Centre = {
 
 export default function AdminCentresPage() {
   const [name, setName] = useState('');
-  const [location, setLocation] = useState('');
+  const [LocationText, setLocationText] = useState('');
   const [capacity, setCapacity] = useState('');
   const [centres, setCentres] = useState<Centre[]>([]);
   const { showToast, ToastComponent } = useToast();
@@ -42,7 +42,7 @@ export default function AdminCentresPage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         name,
-        location,
+        LocationText,
         capacity: parseFloat(capacity),
         current_load: 0,
       }),
@@ -54,7 +54,7 @@ export default function AdminCentresPage() {
     } else {
       showToast('Centre added successfully', 'success');
       setName('');
-      setLocation('');
+      setLocationText('');
       setCapacity('');
       fetchCentres();
     }
@@ -73,8 +73,8 @@ export default function AdminCentresPage() {
             <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
           </div>
           <div>
-            <Label htmlFor="location">Location</Label>
-            <Input id="location" value={location} onChange={(e) => setLocation(e.target.value)} />
+            <Label htmlFor="LocationText">Location</Label>
+            <Input id="LocationText" value={LocationText} onChange={(e) => setLocationText(e.target.value)} />
           </div>
           <div>
             <Label htmlFor="capacity">Capacity (kg)</Label>
