@@ -42,7 +42,7 @@ export default function AdminDashboard() {
         <AdminCard title="Manage Jobs" href="/admin/jobs" description="Assign collectors and track job status" />
         <AdminCard title="Manage Centres" href="/admin/centres" description="Edit capacity, load, and location" />
         <AdminCard title="Assign Recyclers" href="/admin/recyclers" description="Link users to centres and generate PINs" />
-        <AdminCard title="Assign Collectors" href="/admin/collectors" description="Assign users to pickup jobs" />
+        <AdminCard title="Assign Collectors" href="/admin/assign-collectors" description="Assign users to pickup jobs" />
         <AdminCard title="Audit Logs" href="/admin/logs" description="Review recycling submissions and verifications" />
         <AdminCard title="Manage Rewards" href="/admin/rewards" description="Create rewards and approve claims" />
         <AdminCard title="User Roles" href="/admin/users" description="Assign roles and manage accounts" />
