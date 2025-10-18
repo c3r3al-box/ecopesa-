@@ -55,22 +55,12 @@ return (
             </button>
             <h1 className="text-xl font-bold">Collection Centers</h1>
           </div>
-          <button className="p-2 rounded-full bg-emerald-700" title="Search">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-            </svg>
-          </button>
+          
         </div>
       </header>
 
-      <main className="container mx-auto p-4">
-        <div className="rounded-xl h-72 mb-8  shadow-md border border-emerald-200">
-          {centers.length > 0 && centers[0].location ? (
-          <CollectionMapWrapper centers={centers} />
-          ) : (
-            <div className='text-center py-6 text-gray-500'> Loading map...</div>
-          )}
-        </div>
+      <main className="container  p-4">
+        
 
         <h2 className="text-xl font-bold text-emerald-800 mb-4">Nearby Centers</h2>
 

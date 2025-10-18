@@ -19,6 +19,12 @@
       }
     ],
     "no-inline-styles": "off",
-    "typescript-config/strict": "off"
+    "typescript-config/strict": "off",
+    "axe/text-alternatives": [
+      "default",
+      {
+        "image-alt": "off"
+      }
+    ]
   }
 }

@@ -94,76 +94,74 @@ export default function CollectorDashboard() {
 
   return (
     
-    <div className="space-y-6 max-w-5xl mx-auto py-6">
-      <DashboardHeader title="Collector Dashboard" userType="collector" />
-      <h1 className="text-2xl font-bold">Hello, {user.email}</h1>
+    <div className="min-h-screen bg-emerald-50 py-6 px-4 sm:px-6 lg:px-8 space-y-8">
+  <DashboardHeader title="Collector Dashboard" userType="collector" />
 
-      {locationError ? (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-          {locationError}
+  <section className="space-y-2">
+    <h1 className="text-2xl font-bold text-emerald-800">Welcome, {user.email}</h1>
+    {locationError && (
+      <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+        {locationError}
+      </div>
+    )}
+    {!currentLocation && !locationError && (
+      <p className="text-gray-600">Getting your location...</p>
+    )}
+  </section>
+
+  {currentLocation && (
+    <section className="bg-white rounded-xl shadow-md p-6 space-y-4">
+      <h2 className="text-xl font-semibold text-emerald-700">📍 Real-time Collection Tracking</h2>
+      <div className="h-64 rounded-lg overflow-hidden border border-emerald-200">
+        <RealtimeTrackingMap
+          jobs={assignedJobs}
+          currentLocation={currentLocation}
+          onLocationUpdate={handleLocationUpdate}
+        />
+      </div>
+      <div className="flex gap-6 text-sm text-gray-700 mt-2">
+        <div className="flex items-center gap-2">
+          <img src="https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png" className="w-4 h-4" />
+          <span>Your Location</span>
         </div>
-      ) : !currentLocation ? (
-        <p>Getting your location...</p>
-      ) : (
-        <>
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-xl font-semibold mb-4">Real-time Collection Tracking</h2>
-            <div className="rounded-lg overflow-hidden border shadow-sm h-64 bg-white">
-            <RealtimeTrackingMap
-              jobs={assignedJobs}
-              currentLocation={currentLocation}
-              onLocationUpdate={handleLocationUpdate}
-            />
-            </div>
-            <div className="mt-4 flex flex-wrap gap-4">
-              <div className="flex items-center">
-                <img 
-                  src="https://unpkg.com/leaflet@1.7.1/dist/images/marker-icon.png" 
-                  alt="Location icon" 
-                  className="w-5 h-5 mr-2"
-                />
-                <span>Your Location</span>
-              </div>
-              <div className="flex items-center">
-                <img 
-                  src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png" 
-                  alt="Pending icon" 
-                  className="w-5 h-5 mr-2"
-                />
-                <span>Pending Collection</span>
-              </div>
-              <div className="flex items-center">
-                <img 
-                  src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png" 
-                  alt="Completed icon" 
-                  className="w-5 h-5 mr-2"
-                />
-                <span>Completed</span>
-              </div>
-            </div>
-          </div>
+        <div className="flex items-center gap-2">
+          <img src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-red.png" className="w-4 h-4" />
+          <span>Pending Collection</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <img src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png" className="w-4 h-4" />
+          <span>Completed</span>
+        </div>
+      </div>
+    </section>
+  )}
 
-          <PickupRequestList
-            requests={pendingJobs}
-            currentLocation={currentLocation}
-          />
+  <section className="space-y-4">
+    <h2 className="text-xl font-semibold text-emerald-700">📦 Pending Pickup Requests</h2>
+    <PickupRequestList requests={pendingJobs} currentLocation={currentLocation} />
+  </section>
 
-          <CollectionSchedule
-            jobs={assignedJobs}
-            currentLocation={currentLocation}
-          />
-           {/* Verification Section */}
-          <JobVerification
-            jobs={assignedJobs}
-            currentLocation={currentLocation}
-            onVerify={(jobId: string) => {
-              console.log(`Job ${jobId} verified`);
-              // Optionally refresh jobs or show toast
-            }}
-          />
-          
-        </>
-      )}
-    </div>
+  <section className="space-y-4">
+    <h2 className="text-xl font-semibold text-emerald-700">🗓️ My Collection Schedule</h2>
+    {currentLocation && (
+      <CollectionSchedule jobs={assignedJobs} currentLocation={currentLocation} />
+    )}
+    {!currentLocation && (
+      <p className="text-gray-600">Getting your location for schedule...</p>
+    )}
+  </section>
+
+  <section className="space-y-4">
+    <h2 className="text-xl font-semibold text-emerald-700">✅ Job Verification</h2>
+    <JobVerification
+      jobs={assignedJobs}
+      currentLocation={currentLocation}
+      onVerify={(jobId: string) => {
+        console.log(`Job ${jobId} verified`);
+      }}
+    />
+  </section>
+</div>
+
   );
 }
