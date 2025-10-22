@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
-import { geocodeLocation } from '@/lib/geocode'; 
+import { geocodeLocation } from '@/lib/geocode';
 
 async function createClient() {
-  const cookieStore = await cookies(); 
+  const cookieStore = await cookies();
 
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -15,11 +15,25 @@ async function createClient() {
           const cookie = cookieStore.get(name);
           return cookie?.value;
         },
-        set() {}, // 
-        remove() {}, 
+        set() {},
+        remove() {},
       },
     }
   );
+}
+
+export async function GET() {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from('collection_centres')
+    .select('id, name, location, capacity, address, hours');
+
+  if (error) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+
+  return NextResponse.json({ centres: data }, { status: 200 });
 }
 
 export async function POST(req: NextRequest) {

@@ -9,16 +9,19 @@ export default function AssignCollectorPage() {
   const [centreId, setCentreId] = useState('');
   const [status, setStatus] = useState('');
 
+  const [showCollectorSelect, setShowCollectorSelect] = useState(false);
+  const [showCentreSelect, setShowCentreSelect] = useState(false);
+
   useEffect(() => {
     const fetchData = async () => {
       const [collectorRes, centreRes] = await Promise.all([
-        fetch('/api/admin/collectors'),
-        fetch('/api/admin/centres'),
+        fetch('/api/admin/assign-collector'),
+        fetch('/api/collection-centres'),
       ]);
       const collectorsData = await collectorRes.json();
       const centresData = await centreRes.json();
-      setCollectors(collectorsData.collectors);
-      setCentres(centresData.centres);
+      setCollectors(collectorsData.collectors || []);
+      setCentres(centresData.centres || []);
     };
     fetchData();
   }, []);
@@ -37,27 +40,70 @@ export default function AssignCollectorPage() {
       <h1 className="text-2xl font-bold text-emerald-800 mb-4">Assign Collector</h1>
       <p className="text-gray-700 mb-6">Link collectors to collection centres for routing and visibility.</p>
 
-      <div className="space-y-6">
-        <select value={collectorId} onChange={(e) => setCollectorId(e.target.value)} className="block w-full p-2 border rounded mb-4">
-          <option value="">Select Collector</option>
-          {collectors.map((c: any) => (
-            <option key={c.id} value={c.id}>{c.full_name}</option>
-          ))}
-        </select>
+      <div className="space-y-8">
+  {/* Collector Selection */}
+  <div>
+    <h2 className="text-lg font-semibold text-emerald-700 mb-2">Step 1: Choose a Collector</h2>
+    {!showCollectorSelect ? (
+      <button
+        onClick={() => setShowCollectorSelect(true)}
+        className="bg-white border border-emerald-500 text-emerald-700 hover:bg-emerald-50 px-4 py-2 rounded shadow-sm transition"
+      >
+        Select Collector
+      </button>
+    ) : (
+      <select
+        value={collectorId}
+        onChange={(e) => setCollectorId(e.target.value)}
+        className="block w-full p-2 border border-emerald-300 rounded"
+      >
+        <option value="">Choose a collector</option>
+        {collectors.map((c: any) => (
+          <option key={c.id} value={c.id}>
+            {c.full_name}
+          </option>
+        ))}
+      </select>
+    )}
+  </div>
 
-        <select value={centreId} onChange={(e) => setCentreId(e.target.value)} className="block w-full p-2 border rounded mb-4">
-          <option value="">Select Centre</option>
-          {centres.map((c: any) => (
-            <option key={c.id} value={c.id}>{c.name}</option>
-          ))}
-        </select>
+  {/* Centre Selection */}
+  <div>
+    <h2 className="text-lg font-semibold text-emerald-700 mb-2">Step 2: Choose a Collection Centre</h2>
+    {!showCentreSelect ? (
+      <button
+        onClick={() => setShowCentreSelect(true)}
+        className="bg-white border border-emerald-500 text-emerald-700 hover:bg-emerald-50 px-4 py-2 rounded shadow-sm transition"
+      >
+        Select Centre
+      </button>
+    ) : (
+      <select
+        value={centreId}
+        onChange={(e) => setCentreId(e.target.value)}
+        className="block w-full p-2 border border-emerald-300 rounded"
+      >
+        <option value="">Choose a centre</option>
+        {centres.map((c: any) => (
+          <option key={c.id} value={c.id}>
+            {c.name}
+          </option>
+        ))}
+      </select>
+    )}
+  </div>
 
-        <button onClick={handleAssign} className="bg-emerald-600 text-white block w-full px-4 py-2 rounded">
-          Assign Collector
-        </button>
+  {/* Assign Button */}
+  <button
+    onClick={handleAssign}
+    className="bg-emerald-600 text-white block w-full px-4 py-2 rounded hover:bg-emerald-700 transition"
+  >
+    Assign Collector
+  </button>
 
-        {status && <p className="text-sm text-gray-700 mt-2">{status}</p>}
-      </div>
+  {status && <p className="text-sm text-gray-700 mt-2">{status}</p>}
+</div>
+
     </div>
   );
 }
