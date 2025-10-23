@@ -49,3 +49,26 @@ export interface Database {
     Enums: {}
   }
 }
+export type Recycler = {
+  staff_pin: string;
+  assigned_centre_id: string;
+};
+
+export type CollectionCentre = {
+  id: string;
+  name: string;
+  current_load: number;
+  capacity: number;
+  location: {
+    type: string;
+    coordinates: [number, number];
+    crs?: any;
+  };
+};
+
+export type RecyclingLog = {
+  id: string;
+  user_id: string;
+  recycled_weight: number;
+  verified: boolean;
+};

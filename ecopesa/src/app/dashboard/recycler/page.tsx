@@ -3,12 +3,13 @@
 import { useEffect, useState } from 'react';
 import { useUser } from '@supabase/auth-helpers-react';
 import { supabase } from '@/utils/supabase/client';
+import { CollectionCentre, Recycler, RecyclingLog } from '@/types/supabase';
 
 export default function RecyclerDashboard() {
   const user = useUser();
-  const [recycler, setRecycler] = useState<any>(null);
-  const [center, setCenter] = useState<any>(null);
-  const [logs, setLogs] = useState<any[]>([]);
+  const [recycler, setRecycler] = useState<Recycler | null>(null);
+  const [center, setCenter] = useState<CollectionCentre | null>(null);
+  const [logs, setLogs] = useState<RecyclingLog[]>([]);
   const [loadUpdate, setLoadUpdate] = useState<number | ''>('');
   const [status, setStatus] = useState('');
 
@@ -78,7 +79,10 @@ export default function RecyclerDashboard() {
     setStatus(`Failed to update load: ${result.error}`);
   } else {
     setStatus('Load updated successfully');
-    setCenter((prev: any) => ({ ...prev, current_load: result.newLoad }));
+    setCenter((prev: CollectionCentre | null) =>
+    prev ? { ...prev, current_load: result.newLoad } : null );
+
+
     setLoadUpdate('');
   }
 };
