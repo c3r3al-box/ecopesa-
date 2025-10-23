@@ -17,24 +17,39 @@ type Profile = {
 type Centre = {
   id: string;
   name: string;
-  location: string;
+  location: {
+    type: string;
+    coordinates: [number, number];
+    crs?: any;
+  };
+  readableLocation?: string;
 };
 
 export default function AdminRecyclersPage() {
   const [users, setUsers] = useState<Profile[]>([]);
   const [centres, setCentres] = useState<Centre[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedUserId, setSelectedUserId] = useState('');
-  const [selectedCentreId, setSelectedCentreId] = useState('');
-  const [staffPin, setStaffPin] = useState('');
+  const [assignments, setAssignments] = useState<Record<string, { centreId: string; pin: string }>>({});
   const { showToast, ToastComponent } = useToast();
+
+  const getReadableLocation = async (lat: number, lng: number): Promise<string> => {
+    const apiKey = process.env.NEXT_PUBLIC_OPENCAGE_API_KEY;
+    if (!apiKey) return 'Unknown location';
+    try {
+      const res = await fetch(`https://api.opencagedata.com/geocode/v1/json?q=${lat},${lng}&key=${apiKey}`);
+      const data = await res.json();
+      return data.results?.[0]?.formatted || 'Unknown location';
+    } catch {
+      return 'Unknown location';
+    }
+  };
 
   useEffect(() => {
     const fetchUsers = async () => {
       const { data, error } = await supabase
         .from('profiles')
         .select('id, full_name, email, role')
-        .eq('role', 'user'); // Only show unassigned users
+        .in('role', ['user', 'recycler', 'RECYCLER']);
 
       if (error) {
         showToast('Failed to load users', 'error');
@@ -50,28 +65,32 @@ export default function AdminRecyclersPage() {
 
       if (error) {
         showToast('Failed to load centres', 'error');
-      } else {
-        setCentres(data || []);
+        return;
       }
+
+      const enriched = await Promise.all(
+        (data || []).map(async (c) => {
+          const [lng, lat] = c.location.coordinates;
+          const readable = await getReadableLocation(lat, lng);
+          return { ...c, readableLocation: readable };
+        })
+      );
+
+      setCentres(enriched);
     };
 
     fetchUsers();
     fetchCentres();
   }, []);
 
-  const assignRecycler = async () => {
-    if (!selectedUserId || !selectedCentreId || !staffPin) {
-      showToast('Please fill all fields', 'error');
-      return;
-    }
-
+  const assignRecycler = async (userId: string, centreId: string, pin: string) => {
     const res = await fetch('/api/admin/recyclers', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        userId: selectedUserId,
-        assignedCentreId: selectedCentreId,
-        staffPin,
+        userId,
+        assignedCentreId: centreId,
+        staffPin: pin,
       }),
     });
 
@@ -80,10 +99,12 @@ export default function AdminRecyclersPage() {
       showToast(`Failed to assign recycler: ${result.error}`, 'error');
     } else {
       showToast('Recycler assigned successfully', 'success');
-      setUsers(prev => prev.filter(u => u.id !== selectedUserId));
-      setSelectedUserId('');
-      setSelectedCentreId('');
-      setStaffPin('');
+      setUsers(prev => prev.filter(u => u.id !== userId));
+      setAssignments(prev => {
+        const copy = { ...prev };
+        delete copy[userId];
+        return copy;
+      });
     }
   };
 
@@ -110,44 +131,68 @@ export default function AdminRecyclersPage() {
       </div>
 
       <div className="space-y-4">
-        {filteredUsers.map(user => (
-          <div key={user.id} className="bg-white p-4 rounded shadow">
-            <p className="font-semibold text-emerald-700">{user.full_name || 'Unnamed User'}</p>
-            <p className="text-sm text-gray-600 mb-2">{user.email}</p>
+        {filteredUsers.map(user => {
+          const assignment = assignments[user.id] || { centreId: '', pin: '' };
+          return (
+            <div key={user.id} className="bg-white p-4 rounded shadow">
+              <p className="font-semibold text-emerald-700">{user.full_name || 'Unnamed User'}</p>
+              <p className="text-sm text-gray-600 mb-2">{user.email}</p>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
-              <select
-                value={selectedCentreId}
-                onChange={(e) => setSelectedCentreId(e.target.value)}
-                className="border rounded px-3 py-2 text-sm bg-white shadow-sm"
-              >
-                <option value="">Select Centre</option>
-                {centres.map(c => (
-                  <option key={c.id} value={c.id}>
-                    {c.name} – {c.location}
-                  </option>
-                ))}
-              </select>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+                <select
+                  value={assignment.centreId}
+                  onChange={(e) =>
+                    setAssignments(prev => ({
+                      ...prev,
+                      [user.id]: {
+                        ...prev[user.id],
+                        centreId: e.target.value,
+                        pin: prev[user.id]?.pin || ''
+                      }
+                    }))
+                  }
+                  className="border rounded px-3 py-2 text-sm bg-white shadow-sm"
+                >
+                  <option value="">Select Centre</option>
+                  {centres.map(c => (
+                    <option key={c.id} value={c.id}>
+                      {c.name} – {c.readableLocation}
+                    </option>
+                  ))}
+                </select>
 
-              <Input
-                type="text"
-                placeholder="Staff PIN"
-                value={staffPin}
-                onChange={(e) => setStaffPin(e.target.value)}
-              />
+                <Input
+                  type="text"
+                  placeholder="Staff PIN"
+                  value={assignment.pin}
+                  onChange={(e) =>
+                    setAssignments(prev => ({
+                      ...prev,
+                      [user.id]: {
+                        ...prev[user.id],
+                        pin: e.target.value,
+                        centreId: prev[user.id]?.centreId || ''
+                      }
+                    }))
+                  }
+                />
 
-              <Button
-                onClick={() => {
-                  setSelectedUserId(user.id);
-                  assignRecycler();
-                }}
-                className="bg-emerald-600 hover:bg-emerald-700"
-              >
-                Assign
-              </Button>
+                <Button
+                  onClick={() => {
+                    if (!assignment.centreId || !assignment.pin) {
+                      showToast('Please fill all fields', 'error');
+                      return;
+                    }
+                    assignRecycler(user.id, assignment.centreId, assignment.pin);
+                  }}
+                  className="bg-emerald-600 hover:bg-emerald-700"
+                >
+                  Assign
+                </Button>
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       <ToastComponent />
