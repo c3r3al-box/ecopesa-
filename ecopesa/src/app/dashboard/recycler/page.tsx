@@ -9,7 +9,7 @@ export default function RecyclerDashboard() {
   const [recycler, setRecycler] = useState<any>(null);
   const [center, setCenter] = useState<any>(null);
   const [logs, setLogs] = useState<any[]>([]);
-  const [loadUpdate, setLoadUpdate] = useState('');
+  const [loadUpdate, setLoadUpdate] = useState<number | ''>('');
   const [status, setStatus] = useState('');
 
   useEffect(() => {
@@ -53,25 +53,36 @@ export default function RecyclerDashboard() {
       .eq('id', logId);
 
     if (!error) {
-      setLogs(prev => prev.filter(log => log.id !== logId));
+    setLogs((prev: { id: string; user_id: string; recycled_weight: number; verified: boolean }[]) =>
+    prev.filter(log => log.id !== logId)
+);
+
     }
   };
 
-  const handleUpdateLoad = async () => {
-    if (!center?.id || !loadUpdate) return;
+ const handleUpdateLoad = async () => {
+  if (!center?.id || !loadUpdate) return;
 
-    const { error } = await supabase
-      .from('collection_centres')
-      .update({ current_load: center.current_load + parseFloat(loadUpdate) })
-      .eq('id', center.id);
+  const res = await fetch('/api/recycler/update-load', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      centreId: center.id,
+      loadDelta: (loadUpdate),
+    }),
+  });
 
-    if (error) {
-      setStatus('Failed to update load');
-    } else {
-      setStatus('Load updated successfully');
-      setLoadUpdate('');
-    }
-  };
+  const result = await res.json();
+
+  if (!res.ok) {
+    setStatus(`Failed to update load: ${result.error}`);
+  } else {
+    setStatus('Load updated successfully');
+    setCenter((prev: any) => ({ ...prev, current_load: result.newLoad }));
+    setLoadUpdate('');
+  }
+};
+
 
   return (
     <div className="min-h-screen bg-emerald-50 p-6">
@@ -92,7 +103,11 @@ export default function RecyclerDashboard() {
             <input
               type="number"
               value={loadUpdate}
-              onChange={(e) => setLoadUpdate(e.target.value)}
+              onChange={(e) => {
+                const value = e.target.value;
+                setLoadUpdate(value === '' ? '' : parseFloat(value));
+              }}
+               
               className="border p-2 rounded w-full mb-2"
               placeholder="Enter weight received (kg)"
             />
