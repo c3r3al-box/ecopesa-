@@ -1,5 +1,7 @@
 // types/supabase.ts
 
+import { ReactNode } from "react"
+
 // 1. Define Insert shapes up front
 export type PickupRequestsInsert = {
   address: string
@@ -67,6 +69,8 @@ export type CollectionCentre = {
 };
 
 export type RecyclingLog = {
+  material_type: string;
+  created_at: string | number | Date;
   id: string;
   user_id: string;
   recycled_weight: number;

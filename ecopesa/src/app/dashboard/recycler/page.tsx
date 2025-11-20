@@ -17,76 +17,108 @@ export default function RecyclerDashboard() {
     const fetchRecyclerData = async () => {
       if (!user?.id) return;
 
-      const { data: recyclerData } = await supabase
+      // 1. Get recycler record
+      const { data: recyclerData, error: recyclerError } = await supabase
         .from('recyclers')
         .select('staff_pin, assigned_centre_id')
         .eq('user_id', user.id)
         .maybeSingle();
 
+      if (recyclerError) {
+        console.error('Error fetching recycler:', recyclerError.message);
+        return;
+      }
       if (!recyclerData) return;
 
       setRecycler(recyclerData);
 
-      const { data: centerData } = await supabase
+      // 2. Get assigned centre
+      const { data: centerData, error: centerError } = await supabase
         .from('collection_centres')
         .select('*')
         .eq('id', recyclerData.assigned_centre_id)
         .maybeSingle();
 
-      setCenter(centerData);
+      if (centerError) {
+        console.error('Error fetching centre:', centerError.message);
+      } else {
+        setCenter(centerData);
+      }
 
-      const { data: pendingLogs } = await supabase
-        .from('recycling_logs')
-        .select('id, user_id, recycled_weight, verified')
-        .eq('center_id', recyclerData.assigned_centre_id)
-        .eq('verified', false);
+      // 3. Fetch pending logs via API
+      try {
+        const res = await fetch(`/api/rewards/verify-logs?staffPin=${recyclerData.staff_pin}`);
+        const result = await res.json();
+        console.log('Verify logs API result:', result);
 
-      setLogs(pendingLogs || []);
+        // Accept both { logs: [...] } and plain array
+        if (Array.isArray(result)) {
+          setLogs(result);
+        } else if (result.logs) {
+          setLogs(result.logs);
+        } else {
+          setLogs([]);
+        }
+      } catch (err) {
+        console.error('Error fetching logs:', err);
+      }
     };
 
     fetchRecyclerData();
   }, [user]);
 
   const handleVerifyLog = async (logId: string) => {
-    const { error } = await supabase
-      .from('recycling_logs')
-      .update({ verified: true, verified_by: user?.id })
-      .eq('id', logId);
+    const res = await fetch('/api/rewards/verify-logs', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        logId,
+        recyclerId: user?.id,
+      }),
+    });
 
-    if (!error) {
-    setLogs((prev: { id: string; user_id: string; recycled_weight: number; verified: boolean }[]) =>
-    prev.filter(log => log.id !== logId)
-);
+    const result = await res.json();
 
+    if (!res.ok) {
+      console.error('Verification failed:', result.error);
+      setStatus(`Verification failed: ${result.error}`);
+      return;
     }
+
+    // Update UI with new centre load and remove verified log
+    setLogs(prev => prev.filter(log => log.id !== logId));
+    setCenter(prev =>
+      prev ? { ...prev, current_load: result.newLoad } : null
+    );
+    setStatus(
+      `Log verified successfully. User now has ${result.newPoints} EcoPesa points.`
+    );
   };
 
- const handleUpdateLoad = async () => {
-  if (!center?.id || !loadUpdate) return;
+  const handleUpdateLoad = async () => {
+    if (!center?.id || !loadUpdate) return;
 
-  const res = await fetch('/api/recycler/update-load', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      centreId: center.id,
-      loadDelta: (loadUpdate),
-    }),
-  });
+    const res = await fetch('/api/recycler/update-load', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        centreId: center.id,
+        loadDelta: loadUpdate,
+      }),
+    });
 
-  const result = await res.json();
+    const result = await res.json();
 
-  if (!res.ok) {
-    setStatus(`Failed to update load: ${result.error}`);
-  } else {
-    setStatus('Load updated successfully');
-    setCenter((prev: CollectionCentre | null) =>
-    prev ? { ...prev, current_load: result.newLoad } : null );
-
-
-    setLoadUpdate('');
-  }
-};
-
+    if (!res.ok) {
+      setStatus(`Failed to update load: ${result.error}`);
+    } else {
+      setStatus('Load updated successfully');
+      setCenter(prev =>
+        prev ? { ...prev, current_load: result.newLoad } : null
+      );
+      setLoadUpdate('');
+    }
+  };
 
   return (
     <div className="min-h-screen bg-emerald-50 p-6">
@@ -94,6 +126,7 @@ export default function RecyclerDashboard() {
 
       {recycler && center && (
         <>
+          {/* Centre Info */}
           <div className="bg-white p-4 rounded shadow mb-6">
             <h2 className="text-lg font-semibold text-emerald-700 mb-2">Assigned Centre</h2>
             <p><strong>Name:</strong> {center.name}</p>
@@ -102,6 +135,7 @@ export default function RecyclerDashboard() {
             <p><strong>Staff PIN:</strong> <span className="font-mono text-lg">{recycler.staff_pin}</span></p>
           </div>
 
+          {/* Manual Load Update */}
           <div className="bg-white p-4 rounded shadow mb-6">
             <h2 className="text-lg font-semibold text-emerald-700 mb-2">Update Centre Load</h2>
             <input
@@ -111,7 +145,6 @@ export default function RecyclerDashboard() {
                 const value = e.target.value;
                 setLoadUpdate(value === '' ? '' : parseFloat(value));
               }}
-               
               className="border p-2 rounded w-full mb-2"
               placeholder="Enter weight received (kg)"
             />
@@ -124,6 +157,7 @@ export default function RecyclerDashboard() {
             {status && <p className="mt-2 text-emerald-700">{status}</p>}
           </div>
 
+          {/* Pending Logs */}
           <div className="bg-white p-4 rounded shadow">
             <h2 className="text-lg font-semibold text-emerald-700 mb-4">Pending Logs to Verify</h2>
             {logs.length === 0 ? (
@@ -135,6 +169,8 @@ export default function RecyclerDashboard() {
                     <div>
                       <p><strong>User:</strong> {log.user_id}</p>
                       <p><strong>Weight:</strong> {log.recycled_weight} kg</p>
+                      <p><strong>Material:</strong> {log.material_type}</p>
+                      <p><strong>Date:</strong> {new Date(log.created_at).toLocaleString()}</p>
                     </div>
                     <button
                       onClick={() => handleVerifyLog(log.id)}

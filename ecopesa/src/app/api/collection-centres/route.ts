@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
-import { geocodeLocation } from '@/lib/geocode';
+
 
 async function createClient() {
   const cookieStore = await cookies();
@@ -38,20 +38,21 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   const supabase = await createClient();
-
   const body = await req.json();
-  const { name, LocationText, capacity, address, hours } = body;
 
-  const coords = await geocodeLocation(LocationText);
-  if (!coords) {
-    return NextResponse.json({ error: 'Failed to geocode location' }, { status: 400 });
+  const { name, location, capacity, address, hours } = body;
+
+  // Validate incoming coordinates
+  if (!location || typeof location.lat !== 'number' || typeof location.lng !== 'number') {
+    return NextResponse.json({ error: 'Missing or invalid coordinates' }, { status: 400 });
   }
 
-  const location = `SRID=4326;POINT(${coords.lng} ${coords.lat})`;
+  // Format for PostGIS geometry(Point)
+  const point = `SRID=4326;POINT(${location.lng} ${location.lat})`;
 
   const { data, error } = await supabase
     .from('collection_centres')
-    .insert([{ name, location, capacity, address, hours }])
+    .insert([{ name, location: point, capacity, address, hours }])
     .select();
 
   if (error) {

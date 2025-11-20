@@ -5,26 +5,30 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
+import dynamic from 'next/dynamic';
 
 type Centre = {
   id: string;
   name: string;
-  location: string;
+  location: string | { lat: number; lng: number };
   capacity: number;
   current_load: number;
 };
 
+// Dynamically import LocationPicker to avoid SSR issues
+const LocationPicker = dynamic(() => import('./LocationPicker'), { ssr: false });
+
 export default function AdminCentresPage() {
   const [name, setName] = useState('');
-  const [LocationText, setLocationText] = useState('');
   const [capacity, setCapacity] = useState('');
+  const [location, setLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [centres, setCentres] = useState<Centre[]>([]);
   const { showToast, ToastComponent } = useToast();
 
   const fetchCentres = async () => {
     const res = await fetch('/api/collection-centres', { method: 'GET' });
     const result = await res.json();
-    if (res.ok) setCentres(result.data || []);
+    if (res.ok) setCentres(result.centres || []);
   };
 
   useEffect(() => {
@@ -42,7 +46,7 @@ export default function AdminCentresPage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         name,
-        LocationText,
+        location, // { lat, lng }
         capacity: parseFloat(capacity),
         current_load: 0,
       }),
@@ -54,8 +58,8 @@ export default function AdminCentresPage() {
     } else {
       showToast('Centre added successfully', 'success');
       setName('');
-      setLocationText('');
       setCapacity('');
+      setLocation(null);
       fetchCentres();
     }
   };
@@ -73,8 +77,13 @@ export default function AdminCentresPage() {
             <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
           </div>
           <div>
-            <Label htmlFor="LocationText">Location</Label>
-            <Input id="LocationText" value={LocationText} onChange={(e) => setLocationText(e.target.value)} />
+            <Label>Set Location</Label>
+            {LocationPicker && <LocationPicker onSelect={(coords) => setLocation(coords)} />}
+            {location && (
+              <p className="text-sm text-gray-600 mt-2">
+                Selected: {location.lat.toFixed(5)}, {location.lng.toFixed(5)}
+              </p>
+            )}
           </div>
           <div>
             <Label htmlFor="capacity">Capacity (kg)</Label>
@@ -95,7 +104,11 @@ export default function AdminCentresPage() {
         {centres.map(c => (
           <div key={c.id} className="bg-white p-4 rounded shadow">
             <h3 className="text-lg font-bold text-emerald-700">{c.name}</h3>
-            <p className="text-sm text-gray-600">{c.location}</p>
+            <p className="text-sm text-gray-600">
+              {typeof c.location === 'string'
+                ? c.location
+                : `Lat: ${c.location.lat}, Lng: ${c.location.lng}`}
+            </p>
             <p className="text-sm text-gray-600">Capacity: {c.capacity} kg</p>
             <p className="text-sm text-gray-600">Current Load: {c.current_load} kg</p>
           </div>

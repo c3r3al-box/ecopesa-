@@ -7,13 +7,18 @@ export async function GET() {
   const { data, error } = await (await supabase)
     .from('jobs')
     .select(`
-      id,
-      title,
-      description,
-      assigned_to ( id, full_name, role ),
-      status,
-      created_at
-    `)
+  id,
+  title,
+  description,
+  status,
+  created_at,
+  profiles (
+    id,
+    full_name,
+    role
+  )
+`)
+    
     .order('created_at', { ascending: false });
 
   if (error) {
