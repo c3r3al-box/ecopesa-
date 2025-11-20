@@ -12,55 +12,177 @@ type Log = {
   user_id: { id: string; full_name: string; role: string };
 };
 
-export default function AdminLogsPage() {
+type Claim = {
+  id: string;
+  user_id: { id: string; full_name: string };
+  mpesa_number: string;
+  redeemed_points: number;
+  cash_value: number;
+  status: string;
+  created_at: string;
+  verified_by?: { id: string; full_name: string } | null;
+  verified_at?: string | null;
+};
+
+export default function AdminAuditPage() {
+  const [activeTab, setActiveTab] = useState<'logs' | 'claims'>('logs');
   const [logs, setLogs] = useState<Log[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [claims, setClaims] = useState<Claim[]>([]);
+  const [loadingLogs, setLoadingLogs] = useState(true);
+  const [loadingClaims, setLoadingClaims] = useState(true);
 
   useEffect(() => {
     const fetchLogs = async () => {
       const res = await fetch('/api/admin/logs');
       const result = await res.json();
       if (res.ok) setLogs(result.logs);
-      setLoading(false);
+      setLoadingLogs(false);
+    };
+
+    const fetchClaims = async () => {
+      const res = await fetch('/api/redeem?status=pending');
+      const result = await res.json();
+      if (res.ok) setClaims(result.claims);
+      setLoadingClaims(false);
     };
 
     fetchLogs();
+    fetchClaims();
   }, []);
 
   return (
     <div className="min-h-screen bg-emerald-50 p-6">
-      <h1 className="text-2xl font-bold text-emerald-800 mb-4">Recycling Logs</h1>
-      <p className="text-gray-700 mb-6">Track verified submissions and material breakdowns.</p>
+      <h1 className="text-2xl font-bold text-emerald-800 mb-4">Audit Dashboard</h1>
+      <p className="text-gray-700 mb-6">Monitor recycling submissions and reward redemptions.</p>
 
-      {loading ? (
-        <p className="text-gray-600">Loading logs...</p>
-      ) : logs.length === 0 ? (
-        <p className="text-gray-600">No logs found.</p>
-      ) : (
-        <div className="space-y-4">
-          {logs.map((log) => (
-            <div key={log.id} className="bg-white p-4 rounded-lg shadow">
-              <p className="text-sm text-gray-700">
-                <strong>User:</strong> {log.user_id.full_name} ({log.user_id.role})
-              </p>
-              <p className="text-sm text-gray-700">
-                <strong>Material:</strong> {log.material}
-              </p>
-              <p className="text-sm text-gray-700">
-                <strong>Weight:</strong> {log.recycled_weight} kg
-              </p>
-              <p className="text-sm text-gray-700">
-                <strong>Points:</strong> {log.points_earned}
-              </p>
-              <p className="text-sm text-gray-700">
-                <strong>Verified by:</strong>{' '}
-                {log.verified_by ? log.verified_by.full_name : 'Pending'}
-              </p>
-              <p className="text-xs text-gray-500">
-                Submitted: {new Date(log.created_at).toLocaleString()}
-              </p>
+      {/* Tabs */}
+      <div className="flex gap-4 mb-6">
+        <button
+          className={`px-4 py-2 rounded ${
+            activeTab === 'logs' ? 'bg-emerald-600 text-white' : 'bg-white text-emerald-600 border'
+          }`}
+          onClick={() => setActiveTab('logs')}
+        >
+          Recycling Logs
+        </button>
+        <button
+          className={`px-4 py-2 rounded ${
+            activeTab === 'claims' ? 'bg-emerald-600 text-white' : 'bg-white text-emerald-600 border'
+          }`}
+          onClick={() => setActiveTab('claims')}
+        >
+          Reward Claims
+        </button>
+      </div>
+
+      {/* Tab Content */}
+      {activeTab === 'logs' && (
+        <div>
+          {loadingLogs ? (
+            <p className="text-gray-600">Loading logs...</p>
+          ) : logs.length === 0 ? (
+            <p className="text-gray-600">No logs found.</p>
+          ) : (
+            <div className="space-y-4">
+              {logs.map((log) => (
+                <div key={log.id} className="bg-white p-4 rounded-lg shadow">
+                  <p className="text-sm text-gray-700">
+                    <strong>User:</strong> {log.user_id.full_name} ({log.user_id.role})
+                  </p>
+                  <p className="text-sm text-gray-700">
+                    <strong>Material:</strong> {log.material}
+                  </p>
+                  <p className="text-sm text-gray-700">
+                    <strong>Weight:</strong> {log.recycled_weight} kg
+                  </p>
+                  <p className="text-sm text-gray-700">
+                    <strong>Points:</strong> {log.points_earned}
+                  </p>
+                  <p className="text-sm text-gray-700">
+                    <strong>Verified by:</strong>{' '}
+                    {log.verified_by ? log.verified_by.full_name : 'Pending'}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    Submitted: {new Date(log.created_at).toLocaleString()}
+                  </p>
+                </div>
+              ))}
             </div>
-          ))}
+          )}
+        </div>
+      )}
+
+      {activeTab === 'claims' && (
+        <div>
+          {loadingClaims ? (
+            <p className="text-gray-600">Loading claims...</p>
+          ) : claims.length === 0 ? (
+            <p className="text-gray-600">No claims found.</p>
+          ) : (
+            <div className="space-y-4">
+              {claims.map((claim) => (
+                <div key={claim.id} className="bg-white p-4 rounded-lg shadow">
+                  <p className="text-sm text-gray-700">
+                    <strong>User:</strong> {claim.user_id.full_name}
+                  </p>
+                  <p className="text-sm text-gray-700">
+                    <strong>M-Pesa:</strong> {claim.mpesa_number}
+                  </p>
+                  <p className="text-sm text-gray-700">
+                    <strong>Points Redeemed:</strong> {claim.redeemed_points}
+                  </p>
+                  <p className="text-sm text-gray-700">
+                    <strong>Cash Value:</strong> KES {claim.cash_value}
+                  </p>
+                  <p className="text-sm text-gray-700">
+                    <strong>Status:</strong> {claim.status}
+                  </p>
+                  {claim.verified_by && (
+                    <p className="text-sm text-gray-700">
+                      <strong>Verified by:</strong> {claim.verified_by.full_name}
+                    </p>
+                  )}
+                  <p className="text-xs text-gray-500">
+                    Requested: {new Date(claim.created_at).toLocaleString()}
+                  </p>
+                  {claim.status === 'pending' && (
+                    <div className="mt-2 flex gap-2">
+                      <button
+                        className="px-3 py-1 bg-emerald-600 text-white rounded"
+                        onClick={async () => {
+                          await fetch(`/api/redeem/${claim.id}`, {
+                            method: 'PATCH',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ status: 'verified', adminId: 'ADMIN_UUID' }),
+                          });
+                          const res = await fetch('/api/redeem?status=pending');
+                          const result = await res.json();
+                          setClaims(result.claims);
+                        }}
+                      >
+                        Approve
+                      </button>
+                      <button
+                        className="px-3 py-1 bg-red-600 text-white rounded"
+                        onClick={async () => {
+                          await fetch(`/api/redeem/${claim.id}`, {
+                            method: 'PATCH',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ status: 'rejected', adminId: 'ADMIN_UUID' }),
+                          });
+                          const res = await fetch('/api/redeem?status=pending');
+                          const result = await res.json();
+                          setClaims(result.claims);
+                        }}
+                      >
+                        Reject
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
     </div>

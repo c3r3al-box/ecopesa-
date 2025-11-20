@@ -57,7 +57,7 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-emerald-50">
-      <header className="bg-emerald-800 text-white p-2 rounded-xs shadow-md">
+      <header className="bg-emerald-800 text-white p-2 rounded- shadow-md">
         <div className="container mx-auto flex justify-between items-center">
           <div className="flex items-center space-x-2">
             <button

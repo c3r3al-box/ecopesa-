@@ -3,26 +3,17 @@
 import { useEffect, useState } from 'react';
 import { useUser } from '@supabase/auth-helpers-react';
 import { supabase } from '@/utils/supabase/client';
-
-type Reward = {
-  id: string;
-  name: string;
-  description: string;
-  points_required: number;
-};
+import RedeemModal from '@/components/redeem/redeem-modal';
+import MyRedemptions from '@/components/redeem/my-redemptions';
 
 export default function ViewRewardsPage() {
   const user = useUser();
   const [ecoPoints, setEcoPoints] = useState(0);
-  const [rewards, setRewards] = useState<Reward[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
-  const [selectedReward, setSelectedReward] = useState<Reward | null>(null);
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [status, setStatus] = useState('');
 
   useEffect(() => {
-    const fetchRewards = async () => {
+    const fetchPoints = async () => {
       if (!user?.id) return;
 
       const { data: stats } = await supabase
@@ -31,109 +22,100 @@ export default function ViewRewardsPage() {
         .eq('user_id', user.id)
         .maybeSingle();
 
-      const { data: rewardsList } = await supabase
-        .from('rewards')
-        .select('*')
-        .order('points_required', { ascending: true });
-
       setEcoPoints(stats?.eco_points || 0);
-      setRewards(rewardsList || []);
       setLoading(false);
     };
 
-    fetchRewards();
+    fetchPoints();
   }, [user]);
 
-  const handleRedeemClick = (reward: Reward) => {
-    setSelectedReward(reward);
-    setShowModal(true);
-    setPhoneNumber('');
-    setStatus('');
-  };
-
-  const handleConfirmRedeem = async () => {
-    if (!user?.id || !selectedReward || !phoneNumber) return;
-
-    const res = await fetch('/api/rewards/redeem', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        userId: user.id,
-        rewardId: selectedReward.id,
-        amount: selectedReward.points_required,
-        phone: phoneNumber,
-      }),
-    });
-
-    const result = await res.json();
-    if (res.ok) {
-      setEcoPoints(prev => prev - selectedReward.points_required);
-      setStatus(`Redeemed ${selectedReward.name} to ${phoneNumber}`);
-      setSelectedReward(null);
-    } else {
-      setStatus(`Redemption failed: ${result.error}`);
-    }
-  };
-
   if (loading) {
-    return <div className="p-6 text-center">Loading rewards...</div>;
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-teal-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto mb-4"></div>
+          <p className="text-emerald-700 font-medium">Loading your rewards...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="min-h-screen bg-emerald-50 p-6">
-      <header className="mb-6 text-center">
-        <h1 className="text-2xl font-bold text-emerald-800">Your EcoPesa Rewards</h1>
-        <p className="text-gray-700 mt-2">You have <span className="font-bold">{ecoPoints}</span> points available</p>
-      </header>
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-teal-50 p-6">
+      <div className="max-w-4xl mx-auto">
+        {/* Header Section */}
+        <header className="text-center mb-12">
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-emerald-700 to-teal-600 bg-clip-text text-transparent">
+            EcoPesa Rewards
+          </h1>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {rewards.map(reward => (
-          <div key={reward.id} className="bg-white rounded-lg shadow p-4 text-center">
-            <h2 className="text-lg font-bold text-emerald-700">{reward.name}</h2>
-            <p className="text-sm text-gray-600 mb-2">{reward.description}</p>
-            <p className="text-sm text-gray-800 mb-4">Requires: <span className="font-semibold">{reward.points_required}</span> points</p>
-            <button
-              disabled={ecoPoints < reward.points_required}
-              onClick={() => handleRedeemClick(reward)}
-              className={`px-4 py-2 rounded-full font-semibold transition ${
-                ecoPoints >= reward.points_required
-                  ? 'bg-emerald-600 text-white hover:bg-emerald-700'
-                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-              }`}
-            >
-              {ecoPoints >= reward.points_required ? 'Redeem' : 'Not Enough Points'}
-            </button>
+          {/* Points Card */}
+          <div className="mt-6 inline-block bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-emerald-100 px-8 py-6 transform hover:scale-105 transition-transform duration-200">
+            <p className="text-gray-600 text-sm font-medium uppercase tracking-wider mb-2">
+              Available Balance
+            </p>
+            <div className="flex items-baseline justify-center gap-2">
+              <span className="text-5xl font-extrabold text-emerald-700 animate-pulse">
+                {ecoPoints}
+              </span>
+              <span className="text-emerald-600 font-semibold">points</span>
+            </div>
+            <p className="mt-2 text-xs text-gray-500 italic">
+              Keep recycling to grow your rewards 🌱
+            </p>
+            <div className="mt-3 w-16 h-1 bg-gradient-to-r from-emerald-400 to-teal-400 rounded-full mx-auto"></div>
           </div>
-        ))}
+        </header>
+
+        {/* Redeem Action Section */}
+        <section className="bg-white rounded-2xl shadow-sm border border-emerald-50 p-8 mb-8 text-center">
+          <h2 className="text-2xl font-bold text-emerald-800 mb-3">Redeem Your Points</h2>
+          <p className="text-gray-600 mb-6 leading-relaxed">
+            Convert your eco-points to cash rewards and enjoy the fruits of your recycling efforts.
+          </p>
+
+          <button
+            disabled={ecoPoints <= 0}
+            onClick={() => setShowModal(true)}
+            className={`w-full py-4 px-6 rounded-xl font-semibold text-lg transition-all duration-200 flex items-center justify-center gap-3 ${
+              ecoPoints > 0
+                ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white hover:scale-105 hover:shadow-xl'
+                : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+            }`}
+          >
+            <span className="text-xl">💰</span>
+            {ecoPoints > 0 ? 'Redeem to Cash' : 'Insufficient Points'}
+          </button>
+
+          {ecoPoints <= 0 && (
+            <p className="mt-4 text-sm text-gray-500 flex items-center justify-center gap-2">
+              <span>🔄</span>
+              Recycle more items to earn points
+            </p>
+          )}
+        </section>
+
+        {/* Redemption History */}
+        {user?.id && (
+          <section className="bg-white rounded-2xl shadow-sm border border-emerald-50 p-8">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center">
+                <span className="text-emerald-600">📋</span>
+              </div>
+              <h2 className="text-2xl font-bold text-emerald-800">Redemption History</h2>
+            </div>
+            <MyRedemptions userId={user.id} />
+          </section>
+        )}
       </div>
 
-      {showModal && selectedReward && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 shadow-2xl w-11/12 max-w-sm text-center">
-            <h2 className="text-xl font-bold mb-4 text-emerald-800">Redeem {selectedReward.name}</h2>
-            <p className="mb-4 text-gray-600">Enter your M-Pesa phone number to receive this reward.</p>
-            <input
-              type="tel"
-              value={phoneNumber}
-              onChange={(e) => setPhoneNumber(e.target.value)}
-              placeholder="e.g. 0712345678"
-              className="border p-2 rounded w-full mb-4"
-            />
-            <button
-              onClick={handleConfirmRedeem}
-              className="bg-emerald-600 text-white px-4 py-2 rounded-full font-bold hover:bg-emerald-700 w-full"
-            >
-              Confirm Redemption
-            </button>
-            {status && <p className="mt-3 text-sm text-emerald-700">{status}</p>}
-            <button
-              onClick={() => setShowModal(false)}
-              className="mt-4 text-sm text-gray-500 hover:text-gray-700"
-            >
-              Cancel
-            </button>
-          </div>
-        </div>
+      {/* Redeem Modal */}
+      {showModal && (
+        <RedeemModal
+          userId={user!.id}
+          ecoPoints={ecoPoints}
+          onClose={() => setShowModal(false)}
+        />
       )}
     </div>
   );
