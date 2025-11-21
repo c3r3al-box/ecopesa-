@@ -16,6 +16,7 @@ export default function JourneyPage() {
   const [status, setStatus] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [recycledWeight, setRecycledWeight] = useState('');
   const [materialType, setMaterialType] = useState('');
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const fetchCenters = async () => {
@@ -32,6 +33,7 @@ export default function JourneyPage() {
       return;
     }
 
+    setLoading(true);
     const { error } = await supabase.from('recycling_logs').insert({
       user_id: user.id,
       center_id: selectedCenter,
@@ -51,18 +53,19 @@ export default function JourneyPage() {
       setRecycledWeight('');
       setMaterialType('');
     }
+    setLoading(false);
   };
 
   return (
-    <div className="min-h-screen bg-emerald-50 p-6">
-      <h1 className="text-2xl font-bold text-emerald-800 mb-6 flex items-center">
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-teal-50 p-6">
+      <h1 className="text-3xl font-bold text-emerald-800 mb-8 flex items-center">
         <button
           title="Back"
           aria-label="Back"
           onClick={() => window.history.back()}
-          className="p-2 rounded-full hover:bg-emerald-700 transition mr-2"
+          className="p-2 rounded-full hover:bg-emerald-100 transition mr-3"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none"
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-emerald-700" fill="none"
             viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
           </svg>
@@ -70,15 +73,15 @@ export default function JourneyPage() {
         Log Your Recycling Journey
       </h1>
 
-      <div className="bg-white p-6 rounded-lg shadow max-w-md mx-auto space-y-4">
+      <div className="bg-white p-6 rounded-xl shadow-lg max-w-md mx-auto space-y-6">
         {/* Centre Selector */}
         <div>
-          <label htmlFor="center" className="block mb-2 font-semibold text-gray-700">Select Collection Center</label>
+          <label htmlFor="center" className="block mb-2 font-semibold text-gray-700">Collection Center</label>
           <select
             id="center"
             value={selectedCenter}
             onChange={(e) => setSelectedCenter(e.target.value)}
-            className="w-full border p-2 rounded"
+            className="w-full border p-2 rounded focus:ring-2 focus:ring-emerald-500"
           >
             <option value="">-- Choose a center --</option>
             {centers.map((center) => (
@@ -97,7 +100,7 @@ export default function JourneyPage() {
             type="number"
             value={recycledWeight}
             onChange={(e) => setRecycledWeight(e.target.value)}
-            className="w-full border p-2 rounded"
+            className="w-full border p-2 rounded focus:ring-2 focus:ring-emerald-500"
             placeholder="e.g. 3.5"
           />
         </div>
@@ -105,14 +108,16 @@ export default function JourneyPage() {
         {/* Material Type */}
         <div>
           <label className="block mb-2 font-semibold text-gray-700">Material Type</label>
-          <div className="flex gap-2">
+          <div className="grid grid-cols-2 gap-3">
             {['plastic', 'glass', 'paper', 'metal'].map(type => (
               <button
                 key={type}
                 type="button"
                 onClick={() => setMaterialType(type)}
-                className={`flex-1 px-3 py-2 rounded border ${
-                  materialType === type ? 'bg-emerald-600 text-white' : 'bg-gray-100 text-gray-700'
+                className={`px-3 py-2 rounded border transition ${
+                  materialType === type
+                    ? 'bg-emerald-600 text-white shadow'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
               >
                 {type.charAt(0).toUpperCase() + type.slice(1)}
@@ -123,13 +128,13 @@ export default function JourneyPage() {
 
         {/* Staff PIN */}
         <div>
-          <label htmlFor="pin" className="block mb-2 font-semibold text-gray-700">Enter Staff PIN</label>
+          <label htmlFor="pin" className="block mb-2 font-semibold text-gray-700">Staff PIN</label>
           <input
             id="pin"
-            type="text"
+            type="password"
             value={staffPin}
             onChange={(e) => setStaffPin(e.target.value)}
-            className="w-full border p-2 rounded"
+            className="w-full border p-2 rounded focus:ring-2 focus:ring-emerald-500"
             placeholder="e.g. 1234"
           />
         </div>
@@ -137,22 +142,24 @@ export default function JourneyPage() {
         {/* Submit */}
         <button
           onClick={handleSubmit}
-          disabled={!selectedCenter || !staffPin || !recycledWeight || !materialType}
-          className="w-full bg-emerald-600 text-white px-4 py-2 rounded font-bold hover:bg-emerald-700 disabled:bg-gray-300 disabled:cursor-not-allowed"
+          disabled={loading || !selectedCenter || !staffPin || !recycledWeight || !materialType}
+          className="w-full bg-emerald-600 text-white px-4 py-2 rounded font-bold hover:bg-emerald-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition"
         >
-          Log Journey
+          {loading ? 'Logging...' : 'Log Journey'}
         </button>
 
         {/* Status */}
         {status && (
-          <p
-            className={`mt-4 text-center font-medium rounded p-2 ${
-              status.type === 'success' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'
+          <div
+            className={`mt-4 text-center font-medium rounded p-3 ${
+              status.type === 'success'
+                ? 'bg-emerald-100 text-emerald-700'
+                : 'bg-red-100 text-red-700'
             }`}
-            aria-live="polite"
+            role="alert"
           >
             {status.message}
-          </p>
+          </div>
         )}
       </div>
     </div>

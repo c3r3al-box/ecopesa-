@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useUser } from '@supabase/auth-helpers-react';
 import { supabase } from '@/utils/supabase/client';
 import { CollectionCentre, Recycler, RecyclingLog } from '@/types/supabase';
+import toast from 'react-hot-toast';
 
 export default function RecyclerDashboard() {
   const user = useUser();
@@ -49,9 +50,7 @@ export default function RecyclerDashboard() {
       try {
         const res = await fetch(`/api/rewards/verify-logs?staffPin=${recyclerData.staff_pin}`);
         const result = await res.json();
-        console.log('Verify logs API result:', result);
 
-        // Accept both { logs: [...] } and plain array
         if (Array.isArray(result)) {
           setLogs(result);
         } else if (result.logs) {
@@ -67,6 +66,13 @@ export default function RecyclerDashboard() {
     fetchRecyclerData();
   }, [user]);
 
+  // Toast if centre is already full
+  useEffect(() => {
+    if (center && center.current_load >= center.capacity) {
+      toast.error(`Centre "${center.name}" is at full capacity (${center.capacity}kg).`);
+    }
+  }, [center]);
+
   const handleVerifyLog = async (logId: string) => {
     const res = await fetch('/api/rewards/verify-logs', {
       method: 'POST',
@@ -80,23 +86,28 @@ export default function RecyclerDashboard() {
     const result = await res.json();
 
     if (!res.ok) {
-      console.error('Verification failed:', result.error);
+      toast.error(`Verification failed: ${result.error}`);
       setStatus(`Verification failed: ${result.error}`);
       return;
     }
 
-    // Update UI with new centre load and remove verified log
     setLogs(prev => prev.filter(log => log.id !== logId));
     setCenter(prev =>
       prev ? { ...prev, current_load: result.newLoad } : null
     );
-    setStatus(
-      `Log verified successfully. User now has ${result.newPoints} EcoPesa points.`
-    );
+    toast.success('Log verified successfully ✅');
+    setStatus(`Log verified successfully. User now has ${result.newPoints} EcoPesa points.`);
   };
 
   const handleUpdateLoad = async () => {
     if (!center?.id || !loadUpdate) return;
+
+    const projectedLoad = center.current_load + Number(loadUpdate);
+    if (projectedLoad > center.capacity) {
+      toast.error(`Cannot update: adding ${loadUpdate}kg would exceed capacity (${center.capacity}kg).`);
+      setStatus(`Cannot update: adding ${loadUpdate}kg would exceed capacity (${center.capacity}kg).`);
+      return;
+    }
 
     const res = await fetch('/api/recycler/update-load', {
       method: 'POST',
@@ -110,8 +121,10 @@ export default function RecyclerDashboard() {
     const result = await res.json();
 
     if (!res.ok) {
+      toast.error(`Failed to update load: ${result.error}`);
       setStatus(`Failed to update load: ${result.error}`);
     } else {
+      toast.success('Load updated successfully ✅');
       setStatus('Load updated successfully');
       setCenter(prev =>
         prev ? { ...prev, current_load: result.newLoad } : null
@@ -133,6 +146,24 @@ export default function RecyclerDashboard() {
             <p><strong>Current Load:</strong> {center.current_load} kg</p>
             <p><strong>Capacity:</strong> {center.capacity} kg</p>
             <p><strong>Staff PIN:</strong> <span className="font-mono text-lg">{recycler.staff_pin}</span></p>
+
+            {/* Capacity Progress Bar */}
+            <div className="mt-4">
+              <div className="flex justify-between text-sm text-gray-600 mb-1">
+                <span>Capacity Usage</span>
+                <span>{Math.min(center.current_load, center.capacity)} / {center.capacity} kg</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-3">
+                <div
+                  className={`h-3 rounded-full ${
+                    center.current_load >= center.capacity ? 'bg-red-500' : 'bg-emerald-600'
+                  }`}
+                  style={{
+                    width: `${Math.min((center.current_load / center.capacity) * 100, 100)}%`,
+                  }}
+                ></div>
+              </div>
+            </div>
           </div>
 
           {/* Manual Load Update */}
@@ -150,7 +181,16 @@ export default function RecyclerDashboard() {
             />
             <button
               onClick={handleUpdateLoad}
-              className="bg-emerald-600 text-white px-4 py-2 rounded font-bold hover:bg-emerald-700"
+              disabled={
+                !loadUpdate ||
+                center.current_load >= center.capacity ||
+                center.current_load + Number(loadUpdate) > center.capacity
+              }
+              className={`px-4 py-2 rounded font-bold transition ${
+                center.current_load >= center.capacity
+                  ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                  : 'bg-emerald-600 text-white hover:bg-emerald-700'
+              }`}
             >
               Update Load
             </button>

@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/utils/supabase/client';
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+export default function ProfileLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
 
@@ -24,6 +24,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     return <div className="p-6">Loading...</div>;
   }
 
-  // No header, nav, toaster here — ClientLayout already provides them
+  // No header here — ClientLayout already provides it
   return <>{children}</>;
 }
