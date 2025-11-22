@@ -43,17 +43,7 @@ function Header() {
       <nav className="flex gap-4 text-sm">
        
 
-        {/* Only visible if logged in */}
-        {user && (
-          <>
-            <Link href="/dashboard" className="hover:underline">
-              Dashboard
-            </Link>
-            <Link href="/profile" className="hover:underline">
-              Profile
-            </Link>
-          </>
-        )}
+       
       </nav>
     </header>
   );

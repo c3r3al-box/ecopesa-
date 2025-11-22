@@ -21,7 +21,7 @@ export default function LandingPage() {
           href="/auth"
           className="bg-emerald-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-emerald-700 transition"
         >
-          Sign Up / Log In
+          Get Started
         </Link>
         <Link
           href="/about"
