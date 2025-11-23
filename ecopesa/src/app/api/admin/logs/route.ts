@@ -10,7 +10,7 @@ export async function GET() {
       id,
       recycled_weight,
       points_earned,
-      material,
+      material_type,
       created_at,
       verified_by ( id, full_name ),
       user_id ( id, full_name, role )

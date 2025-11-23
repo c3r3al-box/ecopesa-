@@ -130,10 +130,7 @@ export default function ProfilePage() {
         </Link>
 
         <div className="bg-white p-6 rounded-lg shadow flex flex-col justify-between">
-          <div>
-            <h3 className="font-bold text-emerald-700">Profile Settings</h3>
-            <p className="text-sm text-gray-600">Update your details and preferences.</p>
-          </div>
+         
           <button
             onClick={async () => {
               await supabase.auth.signOut();

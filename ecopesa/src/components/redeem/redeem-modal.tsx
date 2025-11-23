@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import toast from 'react-hot-toast';
 
 type RedeemModalProps = {
   userId: string;
@@ -11,10 +12,8 @@ type RedeemModalProps = {
 export default function RedeemModal({ userId, ecoPoints, onClose }: RedeemModalProps) {
   const [mpesaNumber, setMpesaNumber] = useState<string>('');
   const [redeemedPoints, setRedeemedPoints] = useState<number>(0);
-  const [status, setStatus] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(false);
 
-  // Example conversion rate (1 point = 1 KES)
   const conversionRate = 1;
   const cashValue = redeemedPoints * conversionRate;
 
@@ -32,9 +31,10 @@ export default function RedeemModal({ userId, ecoPoints, onClose }: RedeemModalP
 
     const result = await res.json();
     if (res.ok) {
-      setStatus(result.message);
+      toast.success(`Redeemed ${redeemedPoints} points for KES ${cashValue}! 🎉`);
+      onClose(); // close modal after success
     } else {
-      setStatus(`Error: ${result.error}`);
+      toast.error(`Redemption failed: ${result.error}`);
     }
     setLoading(false);
   };
@@ -66,8 +66,6 @@ export default function RedeemModal({ userId, ecoPoints, onClose }: RedeemModalP
         <p className="text-gray-700 mb-4">
           Expected Cash Value: <strong>KES {cashValue}</strong>
         </p>
-
-        {status && <p className="text-sm text-emerald-600 mb-4">{status}</p>}
 
         <div className="flex justify-end gap-2">
           <button

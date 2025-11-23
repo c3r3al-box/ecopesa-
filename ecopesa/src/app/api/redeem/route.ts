@@ -20,6 +20,20 @@ export async function POST(req: NextRequest) {
   }
 
   const cashValue = redeemedPoints * 1;
+  const currentPoints = stats.eco_points;
+
+  if (redeemedPoints > currentPoints) {
+    return NextResponse.json({ error: 'Insufficient eco points' }, { status: 400 });
+  }
+
+  const newBalance = currentPoints - redeemedPoints;
+
+  await supabase
+  .from ('recycling_stats')
+  .update({ eco_points: newBalance })
+  .eq('user_id', userId);
+
+
 
   const { data: claim, error: claimError } = await supabase
     .from('reward_claims')
@@ -44,11 +58,16 @@ export async function GET(req: NextRequest) {
   const supabase = await createClient();
   const { searchParams } = new URL(req.url);
   const status = searchParams.get('status');
+  const userId = searchParams.get('userId');
 
   let query = supabase
     .from('reward_claims')
-    .select('id, user_id, mpesa_number, redeemed_points, cash_value, status, created_at, verified_at, verified_by')
+    .select('id, user_id, mpesa_number, redeemed_points, cash_value, status, created_at, verified_at, verified_by, payout_status, transaction_id')
     .order('created_at', { ascending: false });
+
+  if (userId) {
+    query = query.eq('user_id', userId);
+  }  
 
   if (status) query = query.eq('status', status);
 

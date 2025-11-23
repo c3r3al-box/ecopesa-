@@ -7,7 +7,7 @@ type Log = {
   id: string;
   recycled_weight: number;
   points_earned: number;
-  material: string;
+  material_type: string;
   created_at: string;
   verified_by: { id: string; full_name: string } | null;
   user_id: { id: string; full_name: string; role: string };
@@ -92,7 +92,7 @@ export default function AdminAuditPage() {
                     <strong>User:</strong> {log.user_id.full_name} ({log.user_id.role})
                   </p>
                   <p className="text-sm text-gray-700">
-                    <strong>Material:</strong> {log.material}
+                    <strong>Material:</strong> {log.material_type}
                   </p>
                   <p className="text-sm text-gray-700">
                     <strong>Weight:</strong> {log.recycled_weight} kg
