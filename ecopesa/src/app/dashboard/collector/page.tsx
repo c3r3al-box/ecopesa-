@@ -7,7 +7,6 @@ import { CollectionSchedule } from '@/components/collector components/collection
 import { PickupRequestList } from '@/components/collector components/pickup-request-list';
 import { Job } from '@/types';
 import { JobVerification } from '@/components/collector components/job-verification';
-import { DashboardHeader } from '@/components/dashboard-header';
 import dynamic from 'next/dynamic';
 const RealtimeTrackingMap = dynamic(
   () => import('@/components/collector components/realtime-tracking-map').then(mod => mod.RealtimeTrackingMap),
@@ -95,7 +94,7 @@ export default function CollectorDashboard() {
   return (
     
     <div className="min-h-screen bg-emerald-50 py-6 px-4 sm:px-6 lg:px-8 space-y-8">
-  <DashboardHeader title="Collector Dashboard" userType="collector" />
+  
 
   <section className="space-y-2">
     <h1 className="text-2xl font-bold text-emerald-800">Welcome, {user.email}</h1>
