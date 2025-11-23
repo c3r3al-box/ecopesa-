@@ -25,36 +25,36 @@ type Centre = {
   readableLocation?: string;
 };
 
+type RecyclerLog = {
+  id: string;
+  user_id: string | null;
+  email: string | null;
+  staff_pin: string | null;
+  assigned_centre_name?: string | null;
+  assigned_centre_id: string | null;
+ 
+  
+};
+
 export default function AdminRecyclersPage() {
-  const [users, setUsers] = useState<Profile[]>([]);
+  const [unassigned, setUnassigned] = useState<Profile[]>([]);
   const [centres, setCentres] = useState<Centre[]>([]);
+  const [logs, setLogs] = useState<RecyclerLog[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [assignments, setAssignments] = useState<Record<string, { centreId: string; pin: string }>>({});
   const { showToast, ToastComponent } = useToast();
 
-  const getReadableLocation = async (lat: number, lng: number): Promise<string> => {
-    const apiKey = process.env.NEXT_PUBLIC_OPENCAGE_API_KEY;
-    if (!apiKey) return 'Unknown location';
-    try {
-      const res = await fetch(`https://api.opencagedata.com/geocode/v1/json?q=${lat},${lng}&key=${apiKey}`);
-      const data = await res.json();
-      return data.results?.[0]?.formatted || 'Unknown location';
-    } catch {
-      return 'Unknown location';
-    }
-  };
-
   useEffect(() => {
-    const fetchUsers = async () => {
+    const fetchUnassigned = async () => {
       const { data, error } = await supabase
         .from('profiles')
         .select('id, full_name, email, role')
-        .in('role', ['user', 'recycler', 'RECYCLER']);
+        .eq('role', 'RECYCLER');
 
       if (error) {
-        showToast('Failed to load users', 'error');
+        showToast('Failed to load unassigned recyclers', 'error');
       } else {
-        setUsers(data || []);
+        setUnassigned(data || []);
       }
     };
 
@@ -68,19 +68,31 @@ export default function AdminRecyclersPage() {
         return;
       }
 
-      const enriched = await Promise.all(
-        (data || []).map(async (c) => {
-          const [lng, lat] = c.location.coordinates;
-          const readable = await getReadableLocation(lat, lng);
-          return { ...c, readableLocation: readable };
-        })
-      );
+      const enriched = (data || []).map((c) => {
+        const [lng, lat] = c.location.coordinates;
+        return { ...c, readableLocation: `${lat}, ${lng}` };
+      });
 
       setCentres(enriched);
     };
 
-    fetchUsers();
+    const fetchLogs = async () => {
+      try {
+        const res = await fetch('/api/admin/recyclers'); // ✅ call GET route
+        if (!res.ok) {
+          showToast('Failed to load recycler logs', 'error');
+          return;
+        }
+        const data: RecyclerLog[] = await res.json();
+        setLogs(data || []);
+      } catch {
+        showToast('Failed to load recycler logs', 'error');
+      }
+    };
+
+    fetchUnassigned();
     fetchCentres();
+    fetchLogs();
   }, []);
 
   const assignRecycler = async (userId: string, centreId: string, pin: string) => {
@@ -99,16 +111,20 @@ export default function AdminRecyclersPage() {
       showToast(`Failed to assign recycler: ${result.error}`, 'error');
     } else {
       showToast('Recycler assigned successfully', 'success');
-      setUsers(prev => prev.filter(u => u.id !== userId));
+      setUnassigned(prev => prev.filter(u => u.id !== userId));
       setAssignments(prev => {
         const copy = { ...prev };
         delete copy[userId];
         return copy;
       });
+      // refresh logs via GET route
+      const refreshed = await fetch('/api/admin/recyclers');
+      const data: RecyclerLog[] = await refreshed.json();
+      setLogs(data || []);
     }
   };
 
-  const filteredUsers = users.filter(user =>
+  const filteredUnassigned = unassigned.filter(user =>
     user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
     user.full_name?.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -116,10 +132,10 @@ export default function AdminRecyclersPage() {
   return (
     <div className="min-h-screen bg-emerald-50 p-6">
       <h1 className="text-2xl font-bold text-emerald-800 mb-4">Assign Recyclers</h1>
-      <p className="text-gray-700 mb-6">Link users to collection centres and generate staff PINs.</p>
+      <p className="text-gray-700 mb-6">Link recyclers to collection centres and generate staff PINs.</p>
 
       <div className="mb-6 max-w-md">
-        <Label htmlFor="search">Search Users</Label>
+        <Label htmlFor="search">Search Unassigned Recyclers</Label>
         <Input
           id="search"
           type="text"
@@ -130,8 +146,9 @@ export default function AdminRecyclersPage() {
         />
       </div>
 
+      {/* Assignment Section */}
       <div className="space-y-4">
-        {filteredUsers.map(user => {
+        {filteredUnassigned.map(user => {
           const assignment = assignments[user.id] || { centreId: '', pin: '' };
           return (
             <div key={user.id} className="bg-white p-4 rounded shadow">
@@ -193,6 +210,41 @@ export default function AdminRecyclersPage() {
             </div>
           );
         })}
+      </div>
+
+      {/* Recycler Log Section */}
+      <div className="mt-10">
+        <h2 className="text-xl font-bold text-emerald-800 mb-4">Recycler Log</h2>
+        <div className="bg-white rounded shadow p-4">
+          {logs.length === 0 ? (
+            <p className="text-gray-600">No recyclers found.</p>
+          ) : (
+            <table className="w-full text-sm text-left">
+              <thead>
+                <tr className="border-b">
+                  <th className="py-2 px-3">Email</th>
+                  <th className="py-2 px-3">Assigned Centre</th>
+                  <th className="py-2 px-3">Centre ID</th>
+                  <th className="py-2 px-3">Staff PIN</th>
+                  
+                </tr>
+              </thead>
+              <tbody>
+                {logs.map(log => (
+                  <tr key={log.id} className="border-b">
+                    <td className="py-2 px-3">{log.email || 'No email'}</td>
+                    <td className="py-2 px-3">{log.assigned_centre_name || 'Not assigned'}</td>
+                    <td className="py-2 px-3">{log.assigned_centre_id || 'Not assigned'}</td>
+                    <td className="py-2 px-3">{log.staff_pin || 'Not assigned'}</td>
+                    <td className="py-2 px-3">
+                      
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
       </div>
 
       <ToastComponent />

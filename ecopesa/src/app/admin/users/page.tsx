@@ -1,11 +1,11 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { supabase } from '@/utils/supabase/client';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
+import { UUID } from 'crypto';
 
 type Profile = {
   id: string;
@@ -20,18 +20,21 @@ export default function AdminUsersPage() {
   const [loading, setLoading] = useState(false);
   const { showToast, ToastComponent } = useToast();
 
+  // ✅ Fetch users via API (server-side Supabase client)
   useEffect(() => {
     const fetchUsers = async () => {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('id, full_name, email, role');
+      try {
+        const res = await fetch('/api/admin/users');
+        const result = await res.json();
 
-      if (error) {
-        console.error('Error fetching users:', error.message);
-        showToast('Failed to load users', 'error');
-      } else {
-        setUsers(data || []);
+        if (!res.ok) {
+          showToast(`Failed to load users: ${result.error}`, 'error');
+        } else {
+          setUsers(result.users || []);
+        }
+      } catch (err) {
+        showToast('Network error while loading users', 'error');
       }
       setLoading(false);
     };
@@ -39,23 +42,29 @@ export default function AdminUsersPage() {
     fetchUsers();
   }, []);
 
+  // ✅ Assign role via API, normalize casing
   const assignRole = async (userId: string, role: string) => {
-    const res = await fetch('/api/admin/users', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ userId, role }),
-    });
+    try {
+      const normalizedRole = role.toUpperCase();
+      const res = await fetch('/api/admin/users', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId, role: normalizedRole }),
+      });
 
-    const result = await res.json();
-    if (!res.ok) {
-      showToast(`Failed to assign role: ${result.error}`, 'error');
-    } else {
-      showToast('Role updated successfully', 'success');
-      setUsers(prev =>
-        prev.map(user =>
-          user.id === userId ? { ...user, role } : user
-        )
-      );
+      const result = await res.json();
+      if (!res.ok) {
+        showToast(`Failed to assign role: ${result.error}`, 'error');
+      } else {
+        showToast('Role updated successfully', 'success');
+        setUsers(prev =>
+          prev.map(user =>
+            user.id === userId ? { ...user, role: result.updatedProfile.role } : user
+          )
+        );
+      }
+    } catch (err) {
+      showToast('Network error while assigning role', 'error');
     }
   };
 
@@ -98,10 +107,10 @@ export default function AdminUsersPage() {
                   onChange={(e) => assignRole(user.id, e.target.value)}
                   className="border rounded px-3 py-1 text-sm bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 >
-                  <option value="user">User</option>
-                  <option value="recycler">Recycler</option>
-                  <option value="collector">Collector</option>
-                  <option value="admin">Admin</option>
+                  <option value="USER">User</option>
+                  <option value="RECYCLER">Recycler</option>
+                  <option value="COLLECTOR">Collector</option>
+                  <option value="ADMIN">Admin</option>
                 </select>
                 <span className="text-xs text-gray-500">Current: {user.role}</span>
               </div>

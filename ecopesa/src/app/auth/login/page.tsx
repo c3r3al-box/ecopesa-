@@ -1,7 +1,7 @@
 'use client';
 
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useToast } from '@/components/ui/use-toast';
 import { login } from '@/app/auth/login/actions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,16 +9,18 @@ import { Label } from '@/components/ui/label';
 
 export default function LoginPage() {
   const router = useRouter();
-  const { showToast, ToastComponent } = useToast();
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   const handleSubmit = async (formData: FormData) => {
-    try {
-      await login(formData);
-    } catch (error) {
-      if (error instanceof Error && !error.message.includes('NEXT_REDIRECT')) {
-        showToast('Login failed. Please check your credentials.', 'error');
-      }
+    const result = await login(formData);
+
+    if (result?.error) {
+      setErrorMsg(result.error);
+      
+      return;
     }
+
+    // success → server action redirects automatically
   };
 
   return (
@@ -32,14 +34,7 @@ export default function LoginPage() {
         <form action={handleSubmit} className="space-y-4">
           <div>
             <Label htmlFor="email" className="text-sm font-medium text-gray-700">Email</Label>
-            <Input
-              id="email"
-              name="email"
-              type="email"
-              required
-              
-              className="mt-1"
-            />
+            <Input id="email" name="email" type="email" required className="mt-1" />
           </div>
 
           <div>
@@ -55,6 +50,13 @@ export default function LoginPage() {
             />
           </div>
 
+          {/* 🔥 Inline error message */}
+          {errorMsg && (
+            <div className="bg-red-100 text-red-700 text-sm p-2 rounded-md">
+              {errorMsg}
+            </div>
+          )}
+
           <Button type="submit" className="w-full bg-emerald-600 hover:bg-emerald-700">
             Log In
           </Button>
@@ -66,8 +68,6 @@ export default function LoginPage() {
             Sign up
           </a>
         </div>
-
-        <ToastComponent />
       </div>
     </div>
   );
