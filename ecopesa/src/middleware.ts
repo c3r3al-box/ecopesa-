@@ -1,12 +1,17 @@
-import { type NextRequest, NextResponse } from 'next/server'
-import { updateSession } from '@/utils/supabase/middleware'
+// middleware.ts
+import { type NextRequest, NextResponse } from 'next/server';
+import { updateSession } from '@/utils/supabase/middleware';
+
+// public routes here
+const publicPaths = ['/', '/about'];
 
 export async function middleware(request: NextRequest) {
-  // Allow landing page without auth
-  if (request.nextUrl.pathname === '/') {
+  // If the request path is in publicPaths, allow without auth
+  if (publicPaths.includes(request.nextUrl.pathname)) {
     return NextResponse.next();
   }
 
+  // Otherwise enforce session
   return await updateSession(request);
 }
 
