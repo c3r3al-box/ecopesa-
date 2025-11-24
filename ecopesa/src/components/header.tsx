@@ -1,4 +1,4 @@
-'use client';
+8'use client';
 
 import Link from 'next/link';
 import { useUser } from '@supabase/auth-helpers-react';
@@ -19,8 +19,8 @@ export default function Header() {
     pathname === '/' ||
     pathname.startsWith('/login') ||
     pathname.startsWith('/signup') ||
-    pathname.startsWith('/auth'); ||
-    pathname.startWith('/about');
+    pathname.startsWith('/about') ||
+    pathname.startsWith('/auth');
 
   return (
     <header className="bg-emerald-900 text-white p-4 flex justify-between items-center">
