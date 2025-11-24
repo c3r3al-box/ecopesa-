@@ -34,10 +34,10 @@ export default function Header() {
         <nav className="flex gap-4 text-sm">
           {!user ? (
             <>
-              <Link href="/login" className="hover:text-emerald-300">
+              <Link href="/auth/login" className="hover:text-emerald-300">
                 Login
               </Link>
-              <Link href="/signup" className="hover:text-emerald-300">
+              <Link href="/auth/signup" className="hover:text-emerald-300">
                 Sign Up
               </Link>
             </>
