@@ -19,7 +19,8 @@ export default function Header() {
     pathname === '/' ||
     pathname.startsWith('/login') ||
     pathname.startsWith('/signup') ||
-    pathname.startsWith('/auth');
+    pathname.startsWith('/auth'); ||
+    pathname.startWith('/about');
 
   return (
     <header className="bg-emerald-900 text-white p-4 flex justify-between items-center">
