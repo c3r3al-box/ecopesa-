@@ -86,6 +86,7 @@ export default function SignupPage() {
               className="mt-1 w-full border rounded px-3 py-2 text-sm bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
             >
               <option value="user">Regular User</option>
+              <option value="recycler">Admin</option>
             
               <option value="recycler">Recycler</option>
             </select>
