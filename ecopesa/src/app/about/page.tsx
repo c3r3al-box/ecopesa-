@@ -2,7 +2,7 @@
 
 export default function AboutPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-b from-emerald-50 to-white p-6">
+    <div className="min-h-screen bg-gradient-to-b from-emerald-50 to-white p-6 overflow-y-auto">
       <div className="max-w-4xl mx-auto">
         {/* Hero */}
         <div className="text-center mb-12">
