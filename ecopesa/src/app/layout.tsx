@@ -30,7 +30,7 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className="h-screen">
-      <body className={`${inter.className} h-screen overflow-hidden bg-gradient-to-br from-emerald-50 to-green-50 text-gray-800 antialiased`}>
+      <body className={`${inter.className} min-h-screen overflow-y-auto bg-gradient-to-br from-emerald-50 to-green-50 text-gray-800 antialiased`}>
         {/* Background decorative elements */}
         <div className="fixed inset-0 pointer-events-none">
           <div className="absolute top-0 left-1/4 w-32 h-32 rounded-full bg-emerald-100 opacity-20 blur-xl"></div>

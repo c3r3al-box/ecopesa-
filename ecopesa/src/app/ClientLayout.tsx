@@ -11,7 +11,7 @@ const inter = Inter({ subsets: ['latin'] });
 
 export default function ClientLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className={`${inter.className} h-screen flex flex-col overflow-hidden`}>
+    <div className={`${inter.className} min-h-screen flex flex-col overflow-y-auto`}>
       <SessionContextProvider supabaseClient={supabase}>
         {/* Header always visible */}
         <Header />
