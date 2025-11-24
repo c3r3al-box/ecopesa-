@@ -78,20 +78,6 @@ export default function SignupPage() {
             />
           </div>
 
-          <div>
-            <Label htmlFor="role" className="text-sm font-medium text-gray-700">Select Role</Label>
-            <select
-              name="role"
-              required
-              className="mt-1 w-full border rounded px-3 py-2 text-sm bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
-            >
-              <option value="user">Regular User</option>
-              <option value="recycler">Admin</option>
-            
-              <option value="recycler">Recycler</option>
-            </select>
-          </div>
-
           <Button
             type="submit"
             className="w-full bg-emerald-600 hover:bg-emerald-700"
