@@ -10,7 +10,10 @@ import dynamic from 'next/dynamic';
 type Centre = {
   id: string;
   name: string;
-  location: string | { lat: number; lng: number };
+    location: {
+    type: string;
+    coordinates: [number, number]; // [lng, lat]
+  };
   capacity: number;
   current_load: number;
 };
@@ -48,7 +51,7 @@ export default function AdminCentresPage() {
         name,
         location, // { lat, lng }
         capacity: parseFloat(capacity),
-        current_load: 0,
+        
       }),
     });
 
@@ -105,10 +108,12 @@ export default function AdminCentresPage() {
           <div key={c.id} className="bg-white p-4 rounded shadow">
             <h3 className="text-lg font-bold text-emerald-700">{c.name}</h3>
             <p className="text-sm text-gray-600">
-              {typeof c.location === 'string'
-                ? c.location
-                : `Lat: ${c.location.lat}, Lng: ${c.location.lng}`}
+              {c.location && 'coordinates' in c.location
+                ? `Lat: ${c.location.coordinates[1]}, Lng: ${c.location.coordinates[0]}`
+                : 'No location'}
             </p>
+
+             
             <p className="text-sm text-gray-600">Capacity: {c.capacity} kg</p>
             <p className="text-sm text-gray-600">Current Load: {c.current_load} kg</p>
           </div>

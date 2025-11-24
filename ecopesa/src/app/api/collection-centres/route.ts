@@ -27,7 +27,7 @@ export async function GET() {
 
   const { data, error } = await supabase
     .from('collection_centres')
-    .select('id, name, location, capacity, address, hours');
+    .select('id, name, location, capacity, current_load, address, hours');
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
@@ -40,7 +40,7 @@ export async function POST(req: NextRequest) {
   const supabase = await createClient();
   const body = await req.json();
 
-  const { name, location, capacity, address, hours } = body;
+  const { name, location, capacity, current_load, address, hours } = body;
 
   // Validate incoming coordinates
   if (!location || typeof location.lat !== 'number' || typeof location.lng !== 'number') {
@@ -52,12 +52,22 @@ export async function POST(req: NextRequest) {
 
   const { data, error } = await supabase
     .from('collection_centres')
-    .insert([{ name, location: point, capacity, address, hours }])
+    .insert([{ name, location: point, capacity, current_load, address, hours }])
     .select();
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json({ error: error.message ?? 'Unknown error' }, { status: 500 });
   }
 
-  return NextResponse.json({ message: 'Insert successful', data }, { status: 201 });
+  const centres = (data || []).map((c: any) => ({
+    id: c.id,
+    name: c.name,
+    capacity: c.capacity,
+    current_load: c.current_load ?? 0,
+    location: c.location?.coordinates
+      ? { lat: c.location.coordinates[1], lng: c.location.coordinates[0] }
+      : null,
+  }));
+
+  return NextResponse.json({ centres }, { status: 201 });
 }
