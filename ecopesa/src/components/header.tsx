@@ -19,7 +19,7 @@ export default function Header() {
     pathname === '/' ||
     pathname.startsWith('/login') ||
     pathname.startsWith('/signup') ||
-  
+    pathname.startsWith('/about') ||
     pathname.startsWith('/auth');
 
   return (
