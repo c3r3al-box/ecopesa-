@@ -1,4 +1,4 @@
-i8'use client';
+'use client';
 
 import Link from 'next/link';
 import { useUser } from '@supabase/auth-helpers-react';
