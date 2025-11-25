@@ -39,10 +39,10 @@ export default function JourneyPage() {
 
     // 🔑 Validate staff PIN before inserting
     const { data: staff, error: staffError } = await supabase
-      .from('profiles') // adjust table name if staff records are stored elsewhere
+      .from('recyclers') // adjust table name if staff records are stored elsewhere
       .select('id')
       .eq('staff_pin', staffPin)
-      .eq('role', 'staff')
+      
       .single();
 
     if (staffError || !staff) {
@@ -55,7 +55,7 @@ export default function JourneyPage() {
     const { error } = await supabase.from('recycling_logs').insert({
       user_id: user.id,
       center_id: selectedCenter,
-      staff_id: staff.id, // better to store staff_id instead of raw pin
+    
       recycled_weight: recycledWeight,
       material_type: materialType,
       verified: false,
