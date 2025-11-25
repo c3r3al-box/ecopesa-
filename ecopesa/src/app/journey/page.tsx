@@ -6,10 +6,12 @@ import { supabase } from '@/utils/supabase/client';
 
 export default function JourneyPage() {
   const user = useUser();
+
   interface Center {
     id: string;
     name: string;
   }
+
   const [centers, setCenters] = useState<Center[]>([]);
   const [selectedCenter, setSelectedCenter] = useState('');
   const [staffPin, setStaffPin] = useState('');
@@ -34,10 +36,26 @@ export default function JourneyPage() {
     }
 
     setLoading(true);
+
+    // 🔑 Validate staff PIN before inserting
+    const { data: staff, error: staffError } = await supabase
+      .from('profiles') // adjust table name if staff records are stored elsewhere
+      .select('id')
+      .eq('staff_pin', staffPin)
+      .eq('role', 'staff')
+      .single();
+
+    if (staffError || !staff) {
+      setStatus({ type: 'error', message: 'Invalid staff PIN. Please try again.' });
+      setLoading(false);
+      return;
+    }
+
+    // ✅ Insert recycling log only if staff PIN is valid
     const { error } = await supabase.from('recycling_logs').insert({
       user_id: user.id,
       center_id: selectedCenter,
-      staff_pin: staffPin,
+      staff_id: staff.id, // better to store staff_id instead of raw pin
       recycled_weight: recycledWeight,
       material_type: materialType,
       verified: false,
@@ -53,6 +71,7 @@ export default function JourneyPage() {
       setRecycledWeight('');
       setMaterialType('');
     }
+
     setLoading(false);
   };
 
