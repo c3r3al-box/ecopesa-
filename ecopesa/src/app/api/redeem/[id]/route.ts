@@ -31,7 +31,7 @@ async function sendMpesaPayment(mpesaNumber: string, amount: number, claimId: st
       QueueTimeOutURL: process.env.MPESA_TIMEOUT_URL,
       ResultURL: process.env.MPESA_RESULT_URL,
       Occasion: 'EcoPesa',
-      OriginatorConversationID: claimId, // 🔑 link callback to claim
+      OriginatorConversationID: claimId,
     },
     { headers: { Authorization: `Bearer ${token}` } }
   );
@@ -41,11 +41,11 @@ async function sendMpesaPayment(mpesaNumber: string, amount: number, claimId: st
 
 export async function PATCH(
   req: NextRequest,
-  context: { params: Promise<{ id: string }> }
+  context: { params: { id: string } }
 ) {
   const supabase = await createClient();
   const { status, adminId, reason } = await req.json();
-  const { id: claimId } = await context.params;
+  const { id: claimId } = context.params;
 
   if (!status || !adminId) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -73,20 +73,11 @@ export async function PATCH(
       })
       .eq('id', claimId);
 
-    // 2b. Deduct points
-    await supabase
-      .from('recycling_stats')
-      .update({ eco_points: claim.eco_points - claim.redeemed_points })
-      .eq('user_id', claim.user_id);
-
-    // 2c. Trigger M-Pesa payout
+    // 2b. Trigger M-Pesa payout
     try {
       const payout = await sendMpesaPayment(claim.mpesa_number, claim.cash_value, claimId);
-
-      // Extract TransactionID from response
       const transactionId = payout?.ConversationID || null;
 
-      // Update claim with transaction details
       await supabase
         .from('reward_claims')
         .update({
@@ -127,14 +118,9 @@ export async function PATCH(
       })
       .eq('id', claimId);
 
-    await supabase
-      .from('recycling_stats')
-      .update({ eco_points: claim.eco_points + claim.redeemed_points })
-      .eq('user_id', claim.user_id);
-
     return NextResponse.json({
       success: false,
-      message: 'Claim rejected. Points refunded.',
+      message: 'Claim rejected.',
       reason,
     });
   }

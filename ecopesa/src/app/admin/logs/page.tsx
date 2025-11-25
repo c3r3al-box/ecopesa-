@@ -14,8 +14,8 @@ type Log = {
 };
 
 type Claim = {
-  id: string;
-  user_id: { id: string; full_name: string };
+  id:  string;
+  user_id: string;
   mpesa_number: string;
   redeemed_points: number;
   cash_value: number;
@@ -125,7 +125,7 @@ export default function AdminAuditPage() {
               {claims.map((claim) => (
                 <div key={claim.id} className="bg-white p-4 rounded-lg shadow">
                   <p className="text-sm text-gray-700">
-                    <strong>User:</strong> {claim.user_id.full_name}
+                    <strong>User:</strong> { claim.user_id }
                   </p>
                   <p className="text-sm text-gray-700">
                     <strong>M-Pesa:</strong> {claim.mpesa_number}
