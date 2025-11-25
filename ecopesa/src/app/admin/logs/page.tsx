@@ -3,6 +3,12 @@
 import { useEffect, useState } from 'react';
 import { useUser } from '@supabase/auth-helpers-react';
 
+type UserRef = {
+  id: string;
+  full_name: string;
+  role: string;
+};
+
 type Log = {
   id: string;
   recycled_weight: number;
@@ -10,12 +16,12 @@ type Log = {
   material_type: string;
   created_at: string;
   verified_by: { id: string; full_name: string } | null;
-  user_id: { id: string; full_name: string; role: string };
+  user_id: UserRef; // always an object
 };
 
 type Claim = {
-  id:  string;
-  user_id: string;
+  id: string;
+  user_id: UserRef; // always an object
   mpesa_number: string;
   redeemed_points: number;
   cash_value: number;
@@ -125,7 +131,7 @@ export default function AdminAuditPage() {
               {claims.map((claim) => (
                 <div key={claim.id} className="bg-white p-4 rounded-lg shadow">
                   <p className="text-sm text-gray-700">
-                    <strong>User:</strong> { claim.user_id }
+                    <strong>User:</strong> {claim.user_id.full_name} ({claim.user_id.role})
                   </p>
                   <p className="text-sm text-gray-700">
                     <strong>M-Pesa:</strong> {claim.mpesa_number}
@@ -149,33 +155,31 @@ export default function AdminAuditPage() {
                   </p>
                   {claim.status === 'pending' && (
                     <div className="mt-2 flex gap-2">
-                     <button
-  className="px-3 py-1 bg-emerald-600 text-white rounded"
-  onClick={async () => {
-    const res = await fetch(`/api/redeem/${claim.id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ status: 'verified', adminId: user?.id }),
-    });
+                      <button
+                        className="px-3 py-1 bg-emerald-600 text-white rounded"
+                        onClick={async () => {
+                          const res = await fetch(`/api/redeem/${claim.id}`, {
+                            method: 'PATCH',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ status: 'verified', adminId: user?.id }),
+                          });
 
-    if (!res.ok) {
-      const err = await res.json();
-      alert(`Error approving claim: ${err.error}`);
-      return;
-    }
+                          if (!res.ok) {
+                            const err = await res.json();
+                            alert(`Error approving claim: ${err.error}`);
+                            return;
+                          }
 
-    const data = await res.json();
-    // ✅ Show success message from backend
-    alert(data.message || 'Claim approved successfully!');
+                          const data = await res.json();
+                          alert(data.message || 'Claim approved successfully!');
 
-    // Refresh pending claims
-    const refreshed = await fetch('/api/redeem?status=pending');
-    const result = await refreshed.json();
-    setClaims(result.claims);
-  }}
->
-  Approve
-</button>
+                          const refreshed = await fetch('/api/redeem?status=pending');
+                          const result = await refreshed.json();
+                          setClaims(result.claims);
+                        }}
+                      >
+                        Approve
+                      </button>
 
                       <button
                         className="px-3 py-1 bg-red-600 text-white rounded"
