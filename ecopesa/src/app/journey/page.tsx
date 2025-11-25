@@ -4,6 +4,13 @@ import { useState, useEffect } from 'react';
 import { useUser } from '@supabase/auth-helpers-react';
 import { supabase } from '@/utils/supabase/client';
 
+function normalizePin(input: string): string {
+  return input
+    .trim()                // remove leading/trailing spaces/newlines
+    .replace(/\s+/g, '')   // remove any internal whitespace
+    .replace(/[^\x00-\x7F]/g, ''); // strip non‑ASCII characters
+}
+
 export default function JourneyPage() {
   const user = useUser();
 
@@ -37,16 +44,16 @@ export default function JourneyPage() {
 
     setLoading(true);
 
-    
-    const normalizedPin = staffPin.trim();
-    console.log('Entered staffPin:', JSON.stringify(staffPin), 'Normalized:', normalizedPin);
+    // 🔑 Normalize staff PIN
+    const normalizedPin = normalizePin(staffPin);
+    console.log('Raw staffPin:', JSON.stringify(staffPin), 'Normalized:', normalizedPin);
 
     // Validate staff PIN against recyclers table
     const { data: staff, error: staffError } = await supabase
       .from('recyclers')
       .select('id')
       .eq('staff_pin', normalizedPin)
-      .maybeSingle(); // safer than .single()
+      .maybeSingle();
 
     if (staffError || !staff) {
       setStatus({ type: 'error', message: 'Invalid staff PIN. Please try again.' });
