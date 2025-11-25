@@ -16,12 +16,12 @@ type Log = {
   material_type: string;
   created_at: string;
   verified_by: { id: string; full_name: string } | null;
-  user_id: UserRef; // always an object
+  user_id: UserRef;
 };
 
 type Claim = {
   id: string;
-  user_id: UserRef; // always an object
+  user_id: UserRef; // ✅ object, not string
   mpesa_number: string;
   redeemed_points: number;
   cash_value: number;

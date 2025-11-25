@@ -54,25 +54,34 @@ export async function POST(req: NextRequest) {
   return NextResponse.json({ success: true, claim }, { status: 200 });
 }
 
+
+
 export async function GET(req: NextRequest) {
   const supabase = await createClient();
   const { searchParams } = new URL(req.url);
-  const status = searchParams.get('status');
-  const userId = searchParams.get('userId');
+  const status = searchParams.get('status') || 'pending';
 
-  let query = supabase
+  const { data, error } = await supabase
     .from('reward_claims')
-    .select('id, user_id, mpesa_number, redeemed_points, cash_value, status, created_at, verified_at, verified_by, payout_status, transaction_id')
+    .select(`
+      id,
+      mpesa_number,
+      redeemed_points,
+      cash_value,
+      status,
+      created_at,
+      verified_by:profiles!reward_claims_verified_by_fkey (id, full_name),
+      user_id:profiles!fk_reward_claims_user (id, full_name, role)
+    `)
+    .eq('status', status)
     .order('created_at', { ascending: false });
 
-  if (userId) {
-    query = query.eq('user_id', userId);
-  }  
-
-  if (status) query = query.eq('status', status);
-
-  const { data, error } = await query;
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  if (error) {
+    console.error('Error fetching claims:', error.message);
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
 
   return NextResponse.json({ claims: data }, { status: 200 });
 }
+
+

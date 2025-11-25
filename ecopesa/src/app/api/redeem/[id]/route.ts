@@ -41,12 +41,16 @@ async function sendMpesaPayment(mpesaNumber: string, amount: number, claimId: st
 
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }   
+  context: { params: Promise<{ id: string }> } 
+
+  
 ) {
   const supabase = await createClient();
   const { status, adminId, reason } = await req.json();
-  const claimId = params.id;               
+  const { params } = context;
+  const claimId = (await params).id;   
 
+  
   if (!status || !adminId) {
     return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
   }
