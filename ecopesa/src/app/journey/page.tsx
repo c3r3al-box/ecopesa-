@@ -37,13 +37,16 @@ export default function JourneyPage() {
 
     setLoading(true);
 
-   
+    
+    const normalizedPin = staffPin.trim();
+    console.log('Entered staffPin:', JSON.stringify(staffPin), 'Normalized:', normalizedPin);
+
+    // Validate staff PIN against recyclers table
     const { data: staff, error: staffError } = await supabase
-      .from('recyclers') 
+      .from('recyclers')
       .select('id')
-      .eq('staff_pin', staffPin)
-      
-      .single();
+      .eq('staff_pin', normalizedPin)
+      .maybeSingle(); // safer than .single()
 
     if (staffError || !staff) {
       setStatus({ type: 'error', message: 'Invalid staff PIN. Please try again.' });
@@ -55,7 +58,7 @@ export default function JourneyPage() {
     const { error } = await supabase.from('recycling_logs').insert({
       user_id: user.id,
       center_id: selectedCenter,
-      staff_pin: staffPin,
+      staff_pin: normalizedPin, // store normalized pin
       recycled_weight: recycledWeight,
       material_type: materialType,
       verified: false,
