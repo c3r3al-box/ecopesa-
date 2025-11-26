@@ -44,24 +44,13 @@ export default function JourneyPage() {
 
     setLoading(true);
 
-    // 🔑 Normalize staff PIN
+    // 🔑 Normalize staff PIN (still useful for trimming/cleaning)
     const normalizedPin = normalizePin(staffPin);
     console.log('Raw staffPin:', JSON.stringify(staffPin), 'Normalized:', normalizedPin);
 
-    // Validate staff PIN against recyclers table
-    const { data: staff, error: staffError } = await supabase
-      .from('recyclers')
-      .select('id')
-      .eq('staff_pin', normalizedPin)
-      .maybeSingle();
+    // 🚫 Removed staff PIN validation against recyclers table
 
-    if (staffError || !staff) {
-      setStatus({ type: 'error', message: 'Invalid staff PIN. Please try again.' });
-      setLoading(false);
-      return;
-    }
-
-    // ✅ Insert recycling log only if staff PIN is valid
+    // ✅ Directly insert recycling log
     const { error } = await supabase.from('recycling_logs').insert({
       user_id: user.id,
       center_id: selectedCenter,

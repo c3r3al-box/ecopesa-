@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useSupabaseClient } from '@supabase/auth-helpers-react';
 import toast, { Toaster } from 'react-hot-toast';
 
 export default function ProfileSettingsPage() {
@@ -13,6 +14,7 @@ export default function ProfileSettingsPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const router = useRouter();
+  const supabase = useSupabaseClient();
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,6 +49,45 @@ export default function ProfileSettingsPage() {
         setConfirmPassword('');
         setTimeout(() => {
           router.push('/auth/login');
+        }, 1500);
+      }
+    } catch (err: any) {
+      toast.error(`Unexpected error: ${err.message}`);
+    }
+  };
+
+  // 🔑 Account deletion handler
+  const handleDeleteAccount = async () => {
+    const confirmed = window.confirm(
+      'Are you sure you want to delete your account? This action cannot be undone.'
+    );
+    if (!confirmed) return;
+
+    try {
+      // Get current session token
+      const { data: { session } } = await supabase.auth.getSession();
+
+      if (!session?.access_token) {
+        toast.error('No active session found');
+        return;
+      }
+
+      const res = await fetch('/api/profile/delete_account', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`, // ✅ send token
+        },
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        toast.error(`Error: ${data.error}`);
+      } else {
+        toast.success('Account deleted successfully. Redirecting...');
+        setTimeout(() => {
+          router.push('/auth/signup');
         }, 1500);
       }
     } catch (err: any) {
@@ -123,6 +164,17 @@ export default function ProfileSettingsPage() {
           Save Changes
         </button>
       </form>
+
+      {/* Account Deletion Section */}
+      <div className="bg-white p-6 rounded-lg shadow max-w-md mt-6">
+        <h2 className="text-lg font-semibold text-red-700 mb-3">Danger Zone</h2>
+        <button
+          onClick={handleDeleteAccount}
+          className="w-full bg-red-600 text-white px-4 py-2 rounded font-bold hover:bg-red-700 transition"
+        >
+          Delete Account
+        </button>
+      </div>
     </div>
   );
 }
