@@ -24,12 +24,17 @@ export default function CollectionCenters() {
         async (pos) => {
           const { latitude, longitude } = pos.coords;
 
+          console.log('Geolocation coords:', {latitude, longitude});
+
           // Call Postgres function via Supabase RPC
           const { data, error } = await supabase.rpc('get_nearby_centres', {
             user_lat: latitude,
             user_lng: longitude,
-            radius_km: 5, // search within 5km
+            radius_km: 20, // search within 5km
           });
+
+          console.log('RPC result:', data, 'RPC error:', error);
+          
 
           if (error) {
             console.error('Error fetching nearby centres:', error.message);
